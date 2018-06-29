@@ -1,0 +1,279 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<title>商家详情</title>
+		
+		<script id="merchant" type="text/html">
+			<div class="row cl">
+				<label class="form-label col-2">店铺名称：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.name}}" placeholder="" id="" name="" readonly="true">
+				</div>
+				<label class="form-label col-2">店铺类型：</label>
+				<div class="formControls col-2">
+					{{if model.manageType == 'NORMAL_MERCHANT'}}
+						<input type="text" class="input-text" value="普通店铺" placeholder="" id="" name="" readonly="true">
+					{{else if model.manageType == 'ENTITY_MERCHANT'}}
+						<input type="text" class="input-text" value="实体店铺" placeholder="" id="" name="" readonly="true">
+					{{/if}}
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">负责人姓名：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.principalName}}" placeholder="" id="" name="" readonly="true">
+				</div>
+				<label class="form-label col-2">负责人手机号：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.principalMobile}}" placeholder="" id="" name="" readonly="true">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">店铺地址：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.regionName}}{{model.address}}" placeholder="" id="" name="" readonly="true">
+				</div>
+				<label class="form-label col-2">店铺行业：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.industryName}}" placeholder="" id="" name="" readonly="true">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">店铺介绍：</label>
+				<div class="formControls col-6">
+					<textarea name="" cols="" rows="" class="textarea"  placeholder="" datatype="*10-100" dragonfly="true" readonly="true">{{model.intro}}</textarea>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">执照类型：</label>
+				<div class="formControls col-2">
+					{{if model.certifType == 'CERTIF_TYPE_IDCARD'}}
+						<input type="text" class="input-text" value="身份证" placeholder="" id="" name="" readonly="true">
+					{{else if model.certifType == 'CERTIF_TYPE_LICENSE'}}
+						<input type="text" class="input-text" value="营业执照" placeholder="" id="" name="" readonly="true">
+					{{/if}}
+				</div>
+				<label class="form-label col-2">店铺状态：</label>
+				<div class="formControls col-2">
+					{{if model.statusEnum == 'MERCHANT_STATUS_UNCHECK'}}
+						<input type="text" class="input-text" value="未审核" placeholder="" id="" name="" readonly="true">
+					{{else if model.statusEnum == 'MERCHANT_STATUS_CHECKED'}}
+						<input type="text" class="input-text" value="审核通过" placeholder="" id="" name="" readonly="true">
+					{{else if model.statusEnum == 'MERCHANT_STATUS_CHECK_FAILED'}}
+						<input type="text" class="input-text" value="审核不通过" placeholder="" id="" name="" readonly="true">
+					{{else if model.statusEnum == 'MERCHANT_STATUS_NOT_MONEY'}}
+						<input type="text" class="input-text" value="未提交保证金" placeholder="" id="" name="" readonly="true">
+					{{else if model.statusEnum == 'MERCHANT_STATUS_GIVE_MONEY_CHECK'}}
+						<input type="text" class="input-text" value="已提交保证金待财务核实" placeholder="" id="" name="" readonly="true">
+					{{else if model.statusEnum == 'MERCHANT_STATUS_CANCEL'}}
+						<input type="text" class="input-text" value="注销" placeholder="" id="" name="" readonly="true">
+					{{/if}}
+				</div>
+			</div>
+			
+			{{if model.certifType == 'CERTIF_TYPE_IDCARD'}}
+				<div class="row cl">
+					<label class="form-label col-2">身份证姓名：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.operatorName}}" placeholder="" id="" name="" readonly="true">
+					</div>
+					<label class="form-label col-2">身份证号码：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.operatorCardId}}" placeholder="" id="" name="" readonly="true">
+					</div>
+				</div>
+			{{else if model.certifType == 'CERTIF_TYPE_LICENSE'}}
+				<div class="row cl">
+					<label class="form-label col-2">执照名称：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.companyName}}" placeholder="" id="" name="" readonly="true">
+					</div>
+					<label class="form-label col-2">执照地址：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.companyAddress}}" placeholder="" id="" name="" readonly="true">
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-2">执照号码：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.regNumber}}" placeholder="" id="" name="" readonly="true">
+					</div>
+					<label class="form-label col-2">执照有效期：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.licenseIndate}}" placeholder="" id="" name="" readonly="true">
+					</div>
+				</div>
+			{{/if}}
+			<div class="row cl">
+				<label class="form-label col-2">关键词：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.keywords}}" placeholder="" id="" name="" readonly="true">
+				</div>
+			</div>
+			
+			{{if model.certifType == 'CERTIF_TYPE_IDCARD'}}
+				<div class="row cl">
+					<label class="form-label col-2">身份证照：</label>
+					<div class="formControls col-10">
+						{{each model.idcardUrl as data}}
+							<a href="{{model.imageUrl}}{{data}}" data-lightbox="idcardUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+			{{/if}}
+			<div class="row cl">
+				<label class="form-label col-2">门店logo：</label>
+				<div class="formControls col-10">
+					<a href="{{model.imageUrl}}{{model.logoUrl}}" data-lightbox="logoUrl"><img src="{{model.imageUrl}}{{model.logoUrl}}" width="160"/></a>
+				</div>
+			</div>
+			{{if model.manageType == 'ENTITY_MERCHANT' || model.typeEnum == 'AUDIT_TYPE_STORE'}}
+				<div class="row cl">
+					<label class="form-label col-2">门店照：</label>
+					<div class="formControls col-10">
+						{{each model.storeUrl as data}}
+					       <a href="{{model.imageUrl}}{{data}}" data-lightbox="storeUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-2">室内环境照：</label>
+					<div class="formControls col-10">
+						{{each model.environmentUrl as data}}
+					       <a href="{{model.imageUrl}}{{data}}" data-lightbox="environmentUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+			{{/if}}
+			{{if model.certifType == 'CERTIF_TYPE_LICENSE'}}
+				<div class="row cl">
+					<label class="form-label col-2">营业执照：</label>
+					<div class="formControls col-10">
+						{{each model.licenseUrl as data}}
+					       <a href="{{model.imageUrl}}{{data}}" data-lightbox="licenseUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-2">其他照：</label>
+					<div class="formControls col-10">
+						{{each model.otherUrl as data}}
+					       <a href="{{model.imageUrl}}{{data}}" data-lightbox="otherUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+			{{/if}}
+			
+			<div class="row cl " id="bankListDiv">
+				
+			</div>
+			
+		</script>
+		<script id="bankList" type="text/html">
+			<label class="form-label col-2">银行卡：</label>
+				<div class="formControls col-10">
+					<table id="contentTable"  border="1" bordercolor="#ccc" data-toggle="table" data-click-to-select="true">
+						<thead>
+							<tr height="40px">
+								<th>ID</th>
+								<th>姓名</th>
+								<th>银行卡账号</th>
+								<th>支行</th>
+								<th>所属银行</th>
+								<th>操作人</th>
+								<th>操作备注</th>
+								<th>操作时间</th>
+								<th>编辑</th>
+							</tr>
+						</thead>
+						 {{each model as data}}
+						 	<tr height="30px">
+								<td>{{data.id}}</td>
+								<td>{{data.accountName}}</td>
+								<td>{{data.accountNumber}}</td>
+								<td>{{data.subBranchName}}</td>
+								<td>{{data.bankName}}</td>
+								<td>{{data.auditorName}}</td>
+								<td>{{data.remark}}</td>
+								<td>{{data.auditorTime}}</td>
+								<td onclick="edit({{data.id}})"><a href="javascript:;">编辑</a></td>
+							</tr>
+						 {{/each}}
+					</table>
+				</div>
+		</script>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.COMMON, fileGroupConstants.TEMPLATE,fileGroupConstants.STYLE_PER
+			]);
+			var num ;
+			window.onload = function() {
+				var id = getUrlVars()["id"];
+				ajaxRequest.ajax(request_url + "merchant/getMerchantDetail/" + id,"","GET",function(data){
+					var obj = eval(data);
+						if(obj.ret == '1000') {
+							if(obj.model.name == undefined){
+								layer.msg("还未创建门店");
+								return;
+							}
+							obj.model.imageUrl = request_url_image;
+							document.getElementById('type-data').innerHTML= template('merchant', obj);
+							console.log(obj)
+							num=obj.model.userNum;
+							
+							var param={
+								"userNum" :num
+							}
+							ajaxRequest.ajax(request_url + "bankAccount/selectBankOperator",param,"GET",function(dataBank){
+								var objBank = eval(dataBank);
+									if(objBank.ret == '1000') {
+										if(objBank.model!=null &&　objBank.model!=''){
+											document.getElementById('bankListDiv').innerHTML= template('bankList', objBank);
+										}
+									} else {
+										layer.msg('加载失败！', {
+											icon: 5,
+											time: 1000
+										});
+									};
+							});
+						} else {
+							layer.msg('加载失败！', {
+								icon: 5,
+								time: 1000
+							});
+						};
+				});
+				
+				 
+			}
+			function edit(id) {
+					layer_show("编辑", "bank-edit.html?userType=MERCHANT&id=" + id, "", "540");
+				}
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				
+				<div id="type-data">
+				</div>
+			    
+		    </form>
+		</div>
+	</body>
+
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<LINK rel="Bookmark" href="/favicon.ico">
+		<LINK rel="Shortcut Icon" href="/favicon.ico" />
+		<title>红包活动选择器</title>
+		<script type="text/javascript" src="../../js/loadExtendFile.js"></script>
+		<script type="text/javascript">
+			// 加载资源文件
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.TEMPLATE, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON
+			]);
+			
+			/* 活动状态枚举 */
+			var activity_status_enum = {
+				"NOT_STARTED": { key: "NOT_STARTED", label: "未开始" },
+				"REGISTING": { key: "REGISTING", label: "报名中" },
+				"REGIST_END": { key: "REGIST_END", label: "报名结束" },
+				"BEGINNING": { key: "BEGINNING", label: "开抢中" },
+				"END": { key: "END", label: "已结束" },
+			};
+			
+			window.onload = function() {
+				// 加载列表数据
+				$('#contentTable').bootstrapTable({
+					url: request_url_help_redpacket_activity_list,
+			    	showRefresh: true,
+				});
+				
+				$("#confirm").click(function(){
+					var row = $('#contentTable').bootstrapTable('getSelections')[0];
+					if (row == undefined) {
+						row = {};
+					}
+					parent.$("#redpacket-activity-select").val(row.activityTheme);
+					parent.$("#redpacket-activity-selected").val(row.id);
+					layer_extend_close();
+				});
+			};
+			
+			/*处理活动状态枚举*/
+			function get_activity_status_str(data) {
+				return activity_status_enum[data].label;
+			}
+			
+			/**获取选中行ID**/
+			function getIdSelections() {
+				return $.map($('#contentTable').bootstrapTable('getSelections'), function(row) {
+					return row.id
+				});
+			};
+		</script>
+	</head>
+	<body>
+		<div class="pd-20">
+			<div class="mt-20">
+				<table id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="get" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-radio="true"></th>
+							<th data-field="activityTheme">活动主题</th>
+							<th data-field="regStartTime">报名开始时间</th>
+							<th data-field="status" data-formatter="get_activity_status_str">活动状态</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+			<div class="row cl">
+				<div class="col-5 col-5"></div>
+				<div class="col-2 col-2">
+					<button type="button" class="btn btn-success radius" id="confirm">确认</button>
+				</div>
+				<div class="col-5 col-5"></div>
+			</div>
+		</div>
+	</body>
+</html>

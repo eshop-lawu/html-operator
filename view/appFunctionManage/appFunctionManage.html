@@ -1,0 +1,214 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<link href="../../lib/layer/1.9.3/skin/layer.css" rel="stylesheet" />
+		<title>app功能管理新增</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, 
+				fileGroupConstants.WDATEPICKER, fileGroupConstants.COMMON, fileGroupConstants.TEMPLATE,
+				fileGroupConstants.VALIDATE, fileGroupConstants.STYLE_PER, fileGroupConstants.FILEUPLOAD,fileGroupConstants.TEMPLATE
+			]);
+			
+			var isEnable;
+			window.onload = function() {
+            	
+            	ajaxRequest.ajax(request_url +"/appFunctionManage/getAppFunctionManageInfo","","GET",function(data){
+            		var obj = eval(data);
+            		id=obj.model.id;
+            		var html = template('template', obj);
+                	$("#data-form-div").html(html);
+                	if(obj.model.isEnable){
+            			$("#appFunctionManage_able").hide();
+            			$("#appFunctionManage_disable").show();
+            		}else{
+            			$("#appFunctionManage_able").show();
+            			$("#appFunctionManage_disable").hide();
+            		}
+                	
+            	})
+            	
+            	//保存
+            	$("#appFunctionManage-save").click(function(){
+            		isEnable =true;
+                    $(this).parents("form").submit();
+                });
+                
+                 //启用
+                $("#appFunctionManage_able").click(function(){
+                	isEnable =true;
+                    $(this).parents("form").submit();
+                });
+                 
+                //禁用
+                $("#appFunctionManage_disable").click(function(){
+                	isEnable =false;
+                    $(this).parents("form").submit();
+                    
+                });
+                
+                $("#dataForm").validate({
+                    rules: {
+                        appVersion: {required: true,maxlength:50}
+                       
+                    },
+                    messages: {
+                        appVersion: {required: "请输入app版本",maxlength: "字数不能超个50"}
+                       
+                    },
+                    submitHandler: function(form) {
+                        var data = {};
+                       
+                        $("#dataForm").serializeArray().forEach(function(item){
+                            data[item.name] = item.value;
+                        });
+                        data["id"]=id;
+                        data["isEnable"]=isEnable;
+                        var isEnableGame = $("#isEnableGame option:selected").val();
+                        if(isEnableGame == 'true'){
+                        	isEnableGame =true ;
+                        }else{
+                        	isEnableGame =false ;
+                        }
+                        data["isEnableGame"]=isEnableGame;
+                        var isEnableLove = $("#isEnableLove option:selected").val();
+                        if(isEnableLove == 'true'){
+                        	isEnableLove =true ;
+                        }else{
+                        	isEnableLove =false ;
+                        }
+                        data["isEnableLove"]=isEnableLove;
+                        var isEnableRich = $("#isEnableRich option:selected").val();
+                        if(isEnableRich == 'true'){
+                        	isEnableRich =true ;
+                        }else{
+                        	isEnableRich =false ;
+                        }
+                        data["isEnableRich"]=isEnableRich;
+                         var isEnableMerchantRich = $("#isEnableMerchantRich option:selected").val();
+                        if(isEnableMerchantRich == 'true'){
+                        	isEnableMerchantRich =true ;
+                        }else{
+                        	isEnableMerchantRich =false ;
+                        }
+                        data["isEnableMerchantRich"]=isEnableMerchantRich;
+                         $.ajaxExtend({
+                            url: request_url +"/appFunctionManage/saveAppFunctionManage",
+                            type: "POST",
+                            data : JSON.stringify(data),
+                            contentType: "application/json; charset=utf-8",
+                            success: function(obj) {
+                                layer.msg('更新成功！', {icon:1, time:1000});
+                                if(isEnable){
+			            			$("#appFunctionManage_able").hide();
+			            			$("#appFunctionManage_disable").show();
+			            		}else{
+			            			$("#appFunctionManage_able").show();
+			            			$("#appFunctionManage_disable").hide();
+			            		}
+                            }
+                        });
+                    }
+                });
+                
+				
+			}
+			
+		</script>
+	</head>
+ <script id="template" type="text/html">
+ 		<div class="row cl">
+			<label class="form-label col-2">用户app版本号：</label>
+			<div class="formControls col-2">
+				<input type="text" class="input-text" value="{{model.appVersion}}" placeholder="请输入app版本号" name="appVersion"  id="appVersion" maxlength="50"/>
+			</div>
+			
+		</div>
+		
+		<div class="row cl">
+			<label class="form-label col-2">商家app版本号：</label>
+			<div class="formControls col-2">
+				<input type="text" class="input-text" value="{{model.appMerchantVersion}}" placeholder="请输入app版本号" name="appMerchantVersion"  id="appMerchantVersion" maxlength="50"/>
+			</div>
+			
+		</div>
+		
+		<div class="row cl">
+			<label class="form-label col-2">是否启用游戏：</label>
+			<div class="formControls col-2">
+				<span class="select-box">
+				<select id="isEnableGame"  class="select" size="1" datatype="*">
+					<option value="true" {{if model.isEnableGame}}selected="selected"{{/if}}>是</option>
+					<option value="false" {{if !model.isEnableGame}}selected="selected"{{/if}}>否</option>
+				</select>
+				</span>
+			</div>
+		
+		</div>
+		
+		<div class="row cl">
+			<label class="form-label col-2">是否启用爱心账户：</label>
+			<div class="formControls col-2">
+				<span class="select-box">
+				<select id="isEnableLove" class="select" size="1" datatype="*">
+					<option value="true" {{if model.isEnableLove}}selected="selected"{{/if}}>是</option>
+					<option value="false" {{if !model.isEnableLove}}selected="selected"{{/if}}>否</option>
+				</select>
+				</span>
+			</div>
+		
+		</div>
+		
+		
+		<div class="row cl">
+			<label class="form-label col-2">是否启用用户瑞奇岛：</label>
+			<div class="formControls col-2">
+				<span class="select-box">
+				<select id="isEnableRich" class="select" size="1" datatype="*">
+					<option value="true" {{if model.isEnableRich}}selected="selected"{{/if}}>是</option>
+					<option value="false" {{if !model.isEnableRich}}selected="selected"{{/if}}>否</option>
+				</select>
+				</span>
+			</div>
+		
+		</div>
+		
+		
+		<div class="row cl">
+			<label class="form-label col-2">是否启用商家瑞奇岛：</label>
+			<div class="formControls col-2">
+				<span class="select-box">
+				<select id="isEnableMerchantRich" class="select" size="1" datatype="*">
+					<option value="true" {{if model.isEnableMerchantRich}}selected="selected"{{/if}}>是</option>
+					<option value="false" {{if !model.isEnableMerchantRich}}selected="selected"{{/if}}>否</option>
+				</select>
+				</span>
+			</div>
+		
+		</div>
+	
+ </script>
+	<body>
+		<div class="pd-20" >
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				<div class="row cl" id="data-form-div"></div>
+				<div class="row cl">
+					<div class="col-10 col-offset-2" style="margin-left: 300px;margin-top:50px ;">
+						<input class="btn btn-primary radius" name="game_dail_update" type="button" id="appFunctionManage-save" value="保存">
+						 <input class="btn btn-primary radius " type="button" id="appFunctionManage_disable" value="禁用">
+                         <input class="btn btn-primary radius " type="button" id="appFunctionManage_able" value="启用">
+					</div>
+				</div>
+		    </form>
+		</div>
+	</body>
+
+</html>

@@ -1,0 +1,77 @@
+﻿<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>提现详情</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON
+			]);
+
+			window.onload = function() {
+				$(".fixed-table-header").remove();
+				var userNum = getUrlVars()["userNum"];
+				$("#searchForm input[name='userNum']").val(userNum);
+				$('#contentTable').bootstrapTable({
+					url: request_url + "cashBackage/findCashInfoDetail",
+				});
+			}
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			function showStatus(value, row, index) {
+				if(row.cashStatsuEnum == "APPLY") {
+					return "<span class=\"badge badge-warning radius\">" + row.status + "</span>";
+				} else if(row.cashStatsuEnum == "ACCEPT") {
+					return "<span class=\"badge badge-warning radius\">" + row.status + "</span>";
+				} else if(row.cashStatsuEnum == "SUCCESS") {
+					return "<span class=\"badge badge-success radius\">" + row.status + "</span>";
+				} else if(row.cashStatsuEnum == "FAILURE") {
+					return "<span class=\"badge badge-default radius\">" + row.status + "</span>";
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+					<input type="hidden" name="userNum">
+				</form>
+			</div>
+			<div class="mt-20 ">
+				<table id="contentTable" data-striped="true" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="10" data-page-list="[10, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					
+					<thead>
+						<tr>
+							<th data-field="account" data-visible="true" data-width="5%">用户账号</th>
+							<th data-field="regionFullName" data-visible="true" data-width="8%">账号区域</th>
+							<th data-field="cashNumber" data-visible="true" data-width="7%">提现单号</th>
+							<th data-field="gmtCreate" data-visible="true" data-width="6%">时间</th>
+							<th data-field="bankNo" data-visible="true" data-width="5%">账号</th>
+							<th data-field="businessBankAccount" data-visible="true" data-width="4%">账户</th>
+							<th data-field="channel" data-visible="true" data-width="2%">渠道</th>
+							<th data-field="bankName" data-visible="true" data-width="5%">银行</th>
+							<th data-field="bankRegionName" data-visible="true" data-width="8%">账户区域</th>
+							<th data-field="bankBranchName" data-visible="true" data-width="5%">支行</th>
+							<th data-field="money" data-visible="true" data-width="5%">金额(元)</th>
+							<th data-formatter="showStatus" data-visible="true" data-width="5%">状态</th>
+							<th data-field="auditUserName" data-visible="true" data-width="4%">处理人</th>
+							<th data-field="auditFaildReason" data-visible="true" data-width="15%">失败原因</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

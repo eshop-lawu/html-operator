@@ -1,0 +1,156 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<title>拼图游戏</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, 
+				fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,
+				fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				$('#contentTable').bootstrapTable({
+					url: request_url + "gamePuzzlePic/listOperatorGamePuzzlePic",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					if (item.name == "statusEnum" && item.value == "") {
+						return true;
+					}
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				var html = "";
+				if(row.statusEnum == 'ENABLED'){
+					html += "<a href='javascript:;' name='game_puzzle_disable' class='permission_hide' onclick='update(\"" + row.id + "\",\"DISABLED\")'>禁用</a>";
+				}
+				if(row.statusEnum == 'DISABLED'){
+					html += "<a href='javascript:;' name='game_puzzle_add' class='permission_hide' onclick='edit(\"" + row.id + "\")'>编辑</a>&nbsp;|&nbsp;";
+					html += "<a href='javascript:;' name='game_puzzle_enable' class='permission_hide' onclick='update(\"" + row.id + "\",\"ENABLED\")'>启用</a>";
+				}
+				return html;
+			}
+			
+			function edit(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "编辑拼图",
+					content: "game-puzzle-edit.html?id=" + id
+				});
+				layer.full(index);
+			}
+			
+			function add(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "新增拼图",
+					content: "game-puzzle-add.html"
+				});
+				layer.full(index);
+			}
+			
+			function imgPath(value, row, index) {
+				return '<a href="' + request_url_image + row.imgPath + '" data-lightbox="imgPath"><img class="radius" src="' + request_url_image + row.imgPath + '" onerror="this.src=\'' + rootPath + '/images/user.png\';" style="height:80px;"></a>';
+			}
+			
+			function update(id,type){
+				var tipsTxt = '启用';
+				var url = request_url + "/gamePuzzlePic/enableGamePuzzlePic/";
+				if(type == 'DISABLED'){
+					tipsTxt = '禁用';
+					url = request_url + "/gamePuzzlePic/disableGamePuzzlePic/";
+				}
+				layer.confirm('是否确认' + tipsTxt + '？', {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						ajaxRequest.ajax(url + id,"","PUT",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert(tipsTxt + '成功！', {
+										closeBtn: 0
+									}, function() {
+										location.replace(location.href);
+									});
+								} else {
+									layer.msg(tipsTxt + '失败！', {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					},
+					function() {
+						//取消
+					});
+			}
+			
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 游戏管理 <span class="c-gray en">&gt;</span> 拼图游戏
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+					<input type="text" style="width:250px" placeholder="用户昵称" name="userNickname">
+					添加时间：
+					<input type="text" onfocus="WdatePicker({maxDate:'#F{$dp.$D(\'datemax\')||\'%y-%M-%d\'}'})" id="datemin" name="beginTime" class="input-medium Wdate" style="width:120px;"> -
+					<input type="text" onfocus="WdatePicker({minDate:'#F{$dp.$D(\'datemin\')}',maxDate:'%y-%M-%d'})" id="datemax" name="endTime" class="input-medium Wdate" style="width:120px;">
+					状态：
+					<select name="statusEnum">
+						<option value="">全部</option>
+						<option value="ENABLED">启用</option>
+						<option value="DISABLED">禁用</option>
+					</select>
+				</form>
+				<button class="btn btn-success radius" id="btnSubmit" type=""><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+			</div>
+			<div class="mt-20">
+				<div class="cl pd-5 bg-1 bk-gray mt-20"> 
+					<span class="l">
+					<a href="javascript:;" name="game_puzzle_add" onclick="add()" class="btn btn-primary radius permission_hide">新增拼图</a>
+					</span>
+				</div>
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-field="id" data-visible="false">id</th>
+							<th data-width="5%" data-formatter="imgPath" data-visible="true">拼图图片</th>
+							<th data-width="20%" data-field="userNickname" data-visible="true">用户昵称</th>
+							<th data-width="10%" data-field="hardLevel" data-visible="true">拼图难度</th>
+							<th data-width="5%" data-field="statusDes" data-visible="true">状态</th>
+							<th data-width="10%" data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

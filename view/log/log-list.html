@@ -1,0 +1,137 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>日志列表</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON
+			]);
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				$('#contentTable').bootstrapTable({
+					url: request_url + "log/listLog",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				return "<a style=\"text-decoration:none\" class=\"ml-5\" href='javascript:;' title = \"查看\" onclick='detail(\"" + row.id + "\")'><i class=\"Hui-iconfont\">&#xe695;</i></a>";
+			}
+			
+			/**查看**/
+			function detail(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "日志详情",
+					content: "log-detail.html?id=" + id
+				});
+				layer.full(index);
+			}
+			
+			function type(value, row, index) {
+				if(row.typeEnum == 'ADD'){
+					return "新增";
+				}
+				if(row.typeEnum == 'UPDATE'){
+					return "更新";
+				}
+				if(row.typeEnum == 'DELETE'){
+					return "删除";
+				}
+			}
+			
+			function module(value, row, index) {
+				if(row.moduleEnum == 'AD'){
+					return "广告";
+				}
+				if(row.moduleEnum == 'PRODUCT'){
+					return "商品";
+				}
+				if(row.moduleEnum == 'ORDER'){
+					return "订单";
+				}
+				if(row.moduleEnum == 'STORE'){
+					return "门店";
+				}
+				if(row.moduleEnum == 'PROPERTY'){
+					return "资产";
+				}
+				if(row.moduleEnum == 'ACTIVITY'){
+					return "活动";
+				}
+				if(row.moduleEnum == 'OPERATOR'){
+					return "运营";
+				}
+			}
+			
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 日志管理 <span class="c-gray en">&gt;</span> 日志列表
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+					<select name="typeEnum">
+						<option value="ALL">操作类型</option>
+						<option value="ADD">新增</option>
+						<option value="UPDATE">修改</option>
+						<option value="DELETE">删除</option>
+					</select>
+					<select name="moduleEnum">
+						<option value="ALL">模块</option>
+						<option value="AD">广告</option>
+						<option value="PRODUCT">商品</option>
+						<option value="ORDER">订单</option>
+						<option value="STORE">门店</option>
+					</select>
+				</form>
+				<button class="btn btn-success radius" id="btnSubmit" type=""><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+			</div>
+			<!--<div class="cl pd-5 bg-1 bk-gray mt-20"> <span class="l">
+				<a href="javascript:;" onclick="datadel('del')" class="btn btn-danger radius"><i class="Hui-iconfont">&#xe6e2;</i> 批量删除</a> 
+				<a href="javascript:;" onclick="datadel('down')" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe600;</i> 批量下架</a></span> 
+			</div>-->
+			<div class="mt-20">
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<!--<th data-checkbox="true"></th>-->
+							<th data-field="id" data-visible="false">id</th>
+							<th data-width="6%" data-field="account" data-visible="true">账号</th>
+							<th data-width="5%" data-formatter="type" data-visible="true" >操作类型</th>
+							<th data-width="5%" data-formatter="module" data-visible="true" >模块</th>
+							<th data-width="4%" data-field="businessId" data-visible="true">业务ID</th>
+							<th data-width="10%" data-field="changeTitle" data-visible="true" >变更标题</th>
+							<th data-width="60%" data-field="changeContent" data-visible="true" >变更内容</th>
+							<th data-width="10%" data-field="gmtCreate" data-visible="true">创建时间</th>
+							<!--<th data-formatter="fun">操作</th>-->
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

@@ -1,0 +1,113 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>抽奖详情</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				lotteryActivityId = getUrlVars()["id"];
+				$("#lotteryActivityId").val(lotteryActivityId);
+				$("#lotteryActivityId1").val(lotteryActivityId);
+				
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				$('#contentTable').bootstrapTable({
+					url: request_url + "lotteryRecord/listOperatorLotteryRecord",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					if (item.name == "lotteryResult" && item.value == "") {
+						return true;
+					}
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			function lotteryResult(value, row, index) {
+				if(row.lotteryResult){
+					return "中奖";
+				}else{
+					return "未中奖";
+				}
+			}
+			
+			function exportExcel() {
+				layer.confirm('确认导出当前条件下抽奖数据？', {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						layer.closeAll();
+						$("#excelForm").attr("action", request_url + 'lotteryRecord/exportExcel');
+						$("#lotteryResult1").val($("#lotteryResult").val());
+						$("#excelForm").submit();
+					},
+					function() {
+						//取消
+					});
+			}
+			
+			function importExcel(){
+				layer_show("抽奖结果", "lottery-result.html?lotteryActivityId="+lotteryActivityId, "", "300");
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+					抽奖结果：
+					<select name="lotteryResult" id="lotteryResult">
+						<option value="">全部</option>
+						<option value="true">中奖</option>
+						<option value="false">未中奖</option>
+					</select>
+					<input type="hidden" name="lotteryActivityId" id="lotteryActivityId"/>
+				</form>
+				<button class="btn btn-success radius" id="btnSubmit" type=""><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+			</div>
+			<div class="mt-20">
+				<div class="cl pd-5 bg-1 bk-gray mt-20 ">
+					<span class="l ">
+						<a href="javascript:;" name="lottery_export" onclick="exportExcel()" id="exportExcel" class="btn btn-primary radius permission_hide"><i class="Hui-iconfont">&#xe644;</i> 导出抽奖信息</a>
+						<a href="javascript:;" name="lottery_import" onclick="importExcel()" id="importExcel" class="btn btn-success radius permission_hide"><i class="Hui-iconfont">&#xe645;</i> 导入抽奖结果</a>
+					</span>
+				</div>
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-field="id" data-visible="false">id</th>
+							<!--<th data-formatter="featureImage" data-visible="true">图片</th>-->
+							<th data-width="15%" data-field="account" data-visible="true">账号</th>
+							<th data-width="15%" data-field="nickName" data-visible="true">昵称</th>
+							<th data-width="30%" data-field="prizeName" data-visible="true">奖品名称</th>
+							<th data-width="10%" data-field="lotteryCount" data-visible="true">抽奖次数</th>
+							<th data-width="20%" data-formatter="lotteryResult">抽奖结果</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+		<form id="excelForm" method="post"> 
+			<input type="hidden" name="lotteryActivityId" id="lotteryActivityId1"/>
+			<input type="hidden" name="lotteryResult" id="lotteryResult1"/>
+		</form>
+	</body>
+
+</html>

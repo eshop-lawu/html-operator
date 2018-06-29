@@ -1,0 +1,172 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<link href="../../lib/layer/1.9.3/skin/layer.css" rel="stylesheet" />
+		<title>活动新增</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, 
+				fileGroupConstants.WDATEPICKER, fileGroupConstants.COMMON, fileGroupConstants.TEMPLATE,
+				fileGroupConstants.VALIDATE, fileGroupConstants.STYLE_PER, fileGroupConstants.FILEUPLOAD,fileGroupConstants.TEMPLATE
+			]);
+			
+			window.onload = function() {
+            	showPermission();
+            	var id = getUrlVars()["id"];
+            	ajaxRequest.ajax(request_url +"/gameDial/getGameDialById/"+id,"","GET",function(data){
+            		var obj = eval(data);
+            		id=obj.model.id;
+            		var html = template('template', obj);
+                	$("#data-form-div").html(html);
+                	if(obj.model.imgPath == null) {
+	                    $("#upload-image-pic").hide();
+	                }
+                	
+                	$("#upload").change(function(){
+						$.ajaxfileUploadExtend({
+							uploadType: upload_Type_enum.IMG,
+							elementSelector: "#upload",
+							success:function(data){
+								$("#mediaUrl").val(data.model.fileUrl);
+								$("#upload-image-pic").attr("src",request_url_image+data.model.fileUrl);
+								$("#upload-image-pic").show();
+							}
+						});
+					});
+            	})
+            	
+            	
+            	template.helper("assembly_image_path",function(image_path){
+	                var rtn = "";
+	                if(typeof image_path == "undefined" || image_path == undefined || image_path == null) {
+	                    return rtn;
+	                }
+	                rtn = request_url_image + image_path;
+	                return rtn;
+	            });
+            	
+            	//保存
+            	$("#game_dail_update").click(function(){
+                    $(this).parents("form").submit();
+                });
+                
+                $("#dataForm").validate({
+                    rules: {
+                        name: {required: true,maxlength:50},
+                        point: {required: true,number: true},
+                        imgPath: {required: true},
+                        shareAttendCount: {required: true,number: true},
+                        freeCount: {required: true,number: true}
+                    },
+                    messages: {
+                        name: {required: "请输入游戏名称",maxlength: "字数不能超个50"},
+                        point: {required: "请输入参与积分",number: "必须为整数"},
+                        imgPath: {required: "请上传游戏图片"},
+                        shareAttendCount: {required: "请输入分享可参与次数",number: "必须为整数"},
+                        freeCount: {required: "请输入免费次数",number: "必须为整数"}
+                    },
+                    submitHandler: function(form) {
+                        var data = {};
+                       
+                        $("#dataForm").serializeArray().forEach(function(item){
+                            data[item.name] = item.value;
+                        });
+                        data["imgPath"]=$("#mediaUrl").val();
+                        if (!isNull(id) && id !='') {
+                            $.ajaxExtend({
+                                url: request_url +"/gameDial/updateGameDial/"+id,
+                                type: "PUT",
+                                data : JSON.stringify(data),
+                                contentType: "application/json; charset=utf-8",
+                                success: function(obj) {
+                                    layer.msg('更新成功！', {icon:1, time:1000});
+                                    var index = parent.layer.getFrameIndex(window.name);
+									parent.location.reload();
+									parent.layer.close(index);
+                                }
+                            });
+                        } else {
+                            $.ajaxExtend({
+                                url: request_url +"/gameDial/saveGameDial",
+                                type: "POST",
+                                data : JSON.stringify(data),
+                                contentType: "application/json; charset=utf-8",
+                                success: function(obj) {
+                                    layer.msg('新增成功！', {icon:1, time:1000});
+                                    var index = parent.layer.getFrameIndex(window.name);
+									parent.location.reload();
+									parent.layer.close(index);
+                                   
+                                }
+                            });
+                        }
+                    }
+                });
+                
+				
+			}
+			
+		</script>
+	</head>
+ <script id="template" type="text/html">
+ 		<div class="row cl">
+			<label class="form-label col-2">游戏名称：</label>
+			<div class="formControls col-2">
+				<input type="text" class="input-text" value="{{model.name}}" placeholder="请输入游戏名称" name="name"  id="name" maxlength="50"/>
+			</div>
+			<label class="form-label col-2">参与积分：</label>
+			<div class="formControls col-2">
+				<input type="text" class="input-text" value="{{model.point}}" placeholder="请输入参与积分" name="point" id="point" >
+			</div>
+		</div>
+		
+		<div class="row cl">
+			<label class="form-label col-2">每日免费次数：</label>
+			<div class="formControls col-2">
+				<input type="text" class="input-text" value="{{model.freeCount}}" placeholder="请输入免费次数" name="freeCount" id="free-count">
+			</div>
+			<label class="form-label col-2"><span class="c-red">*</span>分享可免费次数：</label>
+            <div class="formControls col-3">
+                <input type="text" class="input-text"  value="{{model.shareAttendCount}}"  name="shareAttendCount" id="share-attend-count" required="true" />
+            </div>
+            <div class="formControls col-2"></div>
+		</div>
+		
+	
+		<div class="row cl">
+			<label class="form-label col-2"><span class='c-red'>*</span>游戏图片：</label>
+			 <div class="formControls col-3">
+                <img src="{{model.imgPath | assembly_image_path}}"  id="upload-image-pic"  class="thumbnail" style="width: 200px;height: 200px; ">
+            </div>
+			<div class="formControls col-4">
+					<label class="btn btn-primary radius" style="margin-left: 100px;" id="upload-label" for="upload" >&nbsp;&nbsp;上传&nbsp;&nbsp;</label>
+					<input type="file" id="upload" class="input-text" style="display: none;"/>
+					<input type="hidden" value="{{model.imgPath}}" name="imgPath" id="mediaUrl"/>
+			</div>
+			<div class="col-4"> </div>
+	</div>
+	
+ </script>
+	<body>
+		<div class="pd-20" >
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				<div class="row cl" id="data-form-div"></div>
+				<div class="row cl">
+					<div class="col-10 col-offset-2" style="margin-left: 300px;margin-top:50px ;">
+						<input class="btn btn-primary radius" name="game_dail_update" type="button" id="game_dail_update" value="保存">
+						<button name="" onClick="layer_close();" class="btn btn-default radius" type="button"><i class="Hui-iconfont">&#xe6a6;</i> 取消</button>
+					</div>
+				</div>
+		    </form>
+		</div>
+	</body>
+
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>修改题目</title>
+		
+		
+	</head>
+
+	<script type="text/javascript">
+		 recursiveloadExtendFile(extendFiles, [
+                fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.VALIDATE,
+                fileGroupConstants.WDATEPICKER,fileGroupConstants.TEMPLATE, fileGroupConstants.COMMON, fileGroupConstants.JQUERY_CHECK, fileGroupConstants.STYLE_PER,
+                fileGroupConstants.BOOTSTRAP,
+            ]);
+	window.onload = function() {
+		var id = getUrlVars()["id"];
+		var category_id;
+		ajaxRequest.ajax(request_url + "gameMindQuestion/get/"+id,"","GET",function(data){
+			var obj= eval(data);
+			category_id = obj.model.categoryId;
+			document.getElementById('data-form-div').innerHTML= template('detail-template', obj);
+			
+			ajaxRequest.ajax(request_url + "gameMindQuestion/getGameMindQuestionCategory","","GET",function(data){
+				var list= eval(data);
+				list.categoryId=category_id;
+				document.getElementById('category').innerHTML= template('template', list);	
+			});
+		});
+		
+		
+		
+		$("#game_mind_question_save").click(function(){
+            $(this).parents("form").submit();
+        });
+		
+		$("#dataForm").validate({
+            rules: {
+                title: {required: true},
+                answers: {required: true},
+                categoryId: {required: true},
+                rightAnswer: {required: true,number: true}
+            },
+            messages: {
+                title: {required: "请输入题目标题"},
+                answers: {required: "请输入题目答案"},
+                categoryId: {required: "请选择题目类型"},
+                rightAnswer: {required: "请输入正确答案",number:"请输入数字"}
+        
+            },
+            submitHandler: function(form) {
+                var data = {};
+                var inputarry=[];
+                $("#dataForm").serializeArray().forEach(function(item){
+                    if (data[item.name] == undefined && item.name == "answers") {
+                        data[item.name] = [item.value];
+                        return;
+                    }
+                    if (data[item.name] != undefined) {
+                        if (!$.isArray(data[item.name])) {
+                            data[item.name] = [data[item.name]];
+                        }
+                        data[item.name].push(item.value);
+                        return;
+                    }
+                    data[item.name] = item.value;
+                });
+                 data["id"] = id;
+                 $.ajaxExtend({
+                    url: request_url +"/gameMindQuestion/saveGameMindQuestion",
+                    type: "POST",
+                    data : JSON.stringify(data),
+                    contentType: "application/json; charset=utf-8",
+                    success: function(obj) {
+                        layer.msg('新增成功！', {icon:1, time:1000});
+                        var index = parent.layer.getFrameIndex(window.name);
+						parent.location.reload();
+						parent.layer.close(index);
+                    }
+                });
+            }
+        });
+		
+	}
+		
+</script>
+<script id="template" type="text/html">
+	<option value="">全部</option>
+	{{each model as item}}
+		<option {{if item.id == categoryId}}selected="selected"{{/if}}  value="{{item.id}}">{{item.name}}</option>
+	{{/each}}
+</script>
+
+
+<script id="detail-template" type="text/html">
+	<div class="row cl">
+			<label class="form-label col-3"><span class="c-red">*</span>题目标题：</label>
+			<div class="formControls col-5">
+				<input type="text" class="input-text" value="{{model.title}}" placeholder="" id="title" name="title"  nullmsg="标题不能为空">
+			</div>
+			<div class="col-4"> </div>
+		</div>
+		
+		{{each model.answers as item}}
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>答案：</label>
+				<div class="formControls col-5">
+					<textarea style="height: 50px;"  name="answers" cols="" rows="" class="textarea" placeholder="请输入答案..."  dragonfly="true" nullmsg="答案不能为空！" >{{item}}</textarea>
+				</div>
+				<div class="col-4"> </div>
+			</div>
+		{{/each}}
+		
+		<div class="row cl">
+			<label class="form-label col-3"><span class="c-red">*</span>正确答案：</label>
+			<div class="formControls col-5">
+				<input type="text" class="input-text" value="{{model.rightAnswer}}" placeholder="" id="rightAnswer" name="rightAnswer"  nullmsg="正确答案不能为空">
+				<span style="color: red;">从0开始计算</span>
+			</div>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-3"><span class="c-red">*</span>难度：</label>
+			<div class="formControls col-5">
+				<select id="lever" class="select" size="1" datatype="*" name="levelEnum">
+					<option {{if model.leverEnum == 'SIMPLE'}}selected="selected"{{/if}} value="SIMPLE">简单</option>
+					<option {{if model.leverEnum == 'DIFFICULTY'}}selected="selected"{{/if}} value="DIFFICULTY">困难</option>
+				</select>
+			</div>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-3"><span class="c-red">*</span>题目类型：</label>
+			<div class="formControls col-5">
+				<select class="select" name="categoryId" id="category" style="width: 100%;">
+				</select>
+			</div>
+			<div class="col-4"> </div>
+		</div>
+</script>
+
+<body>
+
+<div class="pd-20 ">
+	<form action=""  method="post" class="form form-horizontal" id="dataForm">
+		
+		<div class="row cl" id="data-form-div"></div>
+		<div class="row cl">
+			<div class="col-9 col-offset-3">
+				 <input class="btn btn-primary radius permission_hide" name="game_mind_question_save" type="button" id="game_mind_question_save" value="保存">
+			</div>
+		</div>
+	</form>
+</div>
+</div>
+
+</body>
+</html>

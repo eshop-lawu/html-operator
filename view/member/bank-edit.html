@@ -1,0 +1,164 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>编辑</title>
+	</head>
+
+	<script type="text/javascript">
+		recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER,
+				fileGroupConstants.COMMON, fileGroupConstants.DISTRICT, fileGroupConstants.VALIDATE,
+				fileGroupConstants.TEMPLATE, fileGroupConstants.JQUERY_CHECK,fileGroupConstants.FILEUPLOAD
+			]);
+	window.onload = function() {
+		
+		/**获取html页面之间跳转的参数**/
+		function getUrlVars() {
+			var vars = [],
+				hash;
+			var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+			for(var i = 0; i < hashes.length; i++) {
+				hash = hashes[i].split('=');
+				vars.push(hash[0]);
+				vars[hash[0]] = hash[1];
+			}
+			return vars;
+		}
+		var id = getUrlVars()["id"];
+		ajaxRequest.ajax(request_url +"bankAccount/selectAccount/"+id,"","GET",function(data){
+			var obj = eval(data);
+			console.log(data)
+			if(obj.ret == '1000') {
+				var obj= eval(data);
+				obj.num=getUrlVars()["num"];
+				obj.userType=getUrlVars()["userType"];
+				document.getElementById('dataForm').innerHTML= template('bankInfoTempl', obj);
+				ajaxRequest.ajax(request_url +"/bankAccount/all",null,"get",function(data){
+					document.getElementById('dataBankList').innerHTML= template('dataBankListTemp', data);
+					$.each(data.model, function(i,element) {
+						if(obj.model.bankId==element.id){
+							$("#"+element.id+"bank").attr("selected","true");
+						}
+			 		});
+					
+				})
+			}
+		});
+		
+		
+	}
+		
+	function updateBank(id){
+			$("#dataForm").validate({
+				rules: {
+					accountName: {required: true},
+					accountNumber: {required: true},
+					subBranchName:{required: true}
+				},
+				messages: {
+					accountName: {required: "姓名不能为空"},
+					accountNumber: {required: "卡号不能为空"},
+					subBranchName: {required: "支行不能为空"}
+				}
+			});
+			
+			if(!$("#dataForm").valid()){
+				return ;
+			}
+			
+			$("#dataForm").ajaxSubmit({
+				url: request_url+"bankAccount/updateBankOperator/"+id,
+				type: "PUT",
+				success: function(data) {
+					var obj = eval(data);
+					if(obj.ret == '1000') {
+						parent.parent.$('#btnSubmit').click();
+							parent.parent.layer.closeAll();
+//							var index = parent.layer.getFrameIndex(window.name);
+//							parent.parent.$('#btnSubmit').click();
+//							parent.layer.close(index);
+//							console.log(parent)
+					} else {
+						alert(obj.msg);
+					}
+				}
+					
+			});
+		}
+</script>
+
+<body>
+<div class="pd-20 ">
+	<form action=""  method="put" class="form form-horizontal" id="dataForm">
+		
+		<script id="bankInfoTempl" type="text/html">
+			<input type="hidden"  id="num" name="userNum"  value="{{num}}"/>
+			<input type="hidden"  id="userType"  name="userType"  value="{{userType}}"/>
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>姓名：</label>
+				<div class="formControls col-5">
+					<input type="text" class="input-text" value="{{model.accountName}}" placeholder="" id="ad-name" name="accountName"  nullmsg="姓名不能为空">
+				</div>
+				<label id="accountNameError" style="color: red;"></label>
+				<div class="col-4"> </div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>卡号：</label>
+				<div class="formControls col-5">
+					<input type="text" class="input-text" value="{{model.accountNumber}}" placeholder="" id="ad-name" name="accountNumber"  nullmsg="卡号不能为空">
+				</div>
+				<label id="accountNumberError" style="color: red;"></label>
+				<div class="col-4"> </div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>支行名称：</label>
+				<div class="formControls col-5">
+					<input type="text" class="input-text" value="{{model.subBranchName}}" placeholder="" id="ad-name" name="subBranchName"  nullmsg="支行不能为空">
+				</div>
+				<label id="subBranchNameError" style="color: red;"></label>
+				<div class="col-4"> </div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>开户行名称：</label>
+				<div class="formControls col-5">
+					<select required  id="dataBankList" name="bankId">
+					</select>
+				</div>
+				<label id="bankError" style="color: red;"></label>
+				<div class="col-4"> </div>
+			</div>
+			</select>
+			
+			<div class="row cl">
+				<label class="form-label col-3">备注：</label>
+				<div class="formControls col-5">
+					<textarea name="remark" cols="" rows="" class="textarea" placeholder="请输入备注内容..."  ></textarea>
+				</div>
+				<div class="col-4"> </div>
+			</div>
+			
+			<div class="row cl">
+				<div class="col-9 col-offset-3">
+					<a id="btnSubmit" class="btn btn-primary radius" onclick="updateBank({{model.id}})">提交</a>
+				</div>
+			</div>
+		</script>
+	</form>
+</div>
+</div>
+<script id="dataBankListTemp" type="text/html">
+	<option class="currently">请选择</option>
+	{{each model as data}}
+		<option id="{{data.id}}bank" value="{{data.id}}">{{data.name}}</option>
+	 {{/each}}
+</script>	
+</body>
+
+</html>

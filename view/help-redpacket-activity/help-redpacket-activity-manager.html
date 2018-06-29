@@ -1,0 +1,806 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="renderer" content="webkit|ie-comp|ie-stand">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+        <meta http-equiv="Cache-Control" content="no-siteapp" />
+        <title>助力红包活动管理</title>
+        <script type="text/javascript" src="../../js/loadExtendFile.js"></script>
+        <script type="text/javascript">
+            // 加载资源文件
+            recursiveloadExtendFile(extendFiles, [
+                fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.VALIDATE,
+                fileGroupConstants.WDATEPICKER,fileGroupConstants.TEMPLATE, fileGroupConstants.COMMON, fileGroupConstants.JQUERY_CHECK, fileGroupConstants.STYLE_PER,
+                fileGroupConstants.BOOTSTRAP,
+            ]);
+            
+            /* 活动状态枚举 */
+            var activity_status_enum = {
+                "NOT_STARTED": { key: "NOT_STARTED", label: "未开始" },
+                "REGISTING": { key: "REGISTING", label: "报名中" },
+                "REGIST_END": { key: "REGIST_END", label: "报名结束" },
+                "BEGINNING": { key: "BEGINNING", label: "开抢中" },
+                "END": { key: "END", label: "已结束" },
+            };
+            
+            /* 红包类型枚举 */
+            var red_packet_type_enum = {
+                "WX": { key: "WX", label: "微信红包" },
+                "BALANCE": { key: "BALANCE", label: "余额红包" },
+            };
+            
+            /* 红包活动类型枚举 */
+            var red_packet_activity_type_enum = {
+                "NEW_YEAR": { key: "NEW_YEAR", label: "新年活动" },
+                "LANTERN": { key: "LANTERN", label: "元宵活动" },
+            };
+            
+            var params = getUrlVars();
+            var id = params["id"];
+            
+            function init(obj) {
+                template.helper("assembly_image_path",function(image_path){
+                    var rtn = "";
+                    if(typeof image_path == "undefined" || image_path == undefined || image_path == null) {
+                        return rtn;
+                    }
+                    rtn = request_url_image + image_path;
+                    return rtn;
+                });
+                
+                template.helper("activity_status_enum_str",function(val){
+                    return activity_status_enum[val].label;
+                });
+                
+                template.helper("red_packet_type_enum_str",function(val){
+                    return red_packet_type_enum[val].label;
+                });
+                
+                obj['activity_status_enum'] = activity_status_enum;
+                obj['red_packet_type_enum'] = red_packet_type_enum;
+                obj['red_packet_activity_type_enum'] = red_packet_activity_type_enum;
+                var html = template('template', obj);
+                $("#data-form-div").html(html);
+                
+                $('#dataForm input').iCheck({
+                    checkboxClass: 'icheckbox-blue',
+                    radioClass: 'iradio-blue',
+                    increaseArea: '20%'
+                });
+                
+                $("#reg-start-time").on("focus", function() {
+                    WdatePicker({ dateFmt: "yyyy-MM-dd HH:mm:00", minDate: '#F{\'%y-%M-%d %H:%m:00\'}', maxDate: '#F{$dp.$D(\'reg-end-time\')}', readOnly:'true'});
+                });
+                $("#reg-end-time").on("focus", function() {
+                    WdatePicker({ dateFmt: "yyyy-MM-dd HH:mm:00", minDate: '#F{$dp.$D(\'reg-start-time\') || \'%y-%M-%d %H:%m:00\'}', maxDate: '#F{$dp.$D(\'start-time\')}', readOnly:'true'});
+                });
+                $("#start-time").on("focus", function() {
+                    WdatePicker({ dateFmt: "yyyy-MM-dd HH:mm:00", minDate: '#F{$dp.$D(\'reg-end-time\') || \'%y-%M-%d %H:%m:00\'}', maxDate: '#F{$dp.$D(\'end-time\')}', readOnly:'true'});
+                });
+                $("#end-time").on("focus", function() {
+                    WdatePicker({ dateFmt: "yyyy-MM-dd HH:mm:00", minDate: '#F{$dp.$D(\'start-time\') || \'%y-%M-%d %H:%m:00\'}', readOnly:'true'});
+                });
+                
+                var $generate_large_redpacket_open_button = $("#generate-large-redpacket-open-button");
+                if (id && obj.model.status == activity_status_enum.REGIST_END.key && !$generate_large_redpacket_open_button.hasClass("permission_hide")) {
+                    $("#generate-large-redpacket-open-button").show();
+                }
+                
+                // 如果手动分配金额为空，则不显示分配普通红包按钮
+                if(!obj.model.totalManualAmount) {
+                    $("#generate_normal_redpacket").hide();
+                } else {
+                    $("#generate-large-redpacket-open-button").remove();
+                }
+                
+                if(obj.model.totalAutoAmount) {
+                    $("#generate_normal_redpacket").remove();
+                    get_normal_redpacket_total_amount();
+                }
+                
+                $("#upload-start-pic").change(function(){
+                    $.ajaxfileUploadExtend({
+                        uploadType: upload_Type_enum.IMG,
+                        elementSelector: "#upload-start-pic",
+                        success:function(data){
+                            $("#start-pic").val(data.model.fileUrl);
+                            $("#upload-image-start-pic").attr("src", request_url_image + data.model.fileUrl);
+                            $("#upload-image-start-pic").show();
+                        }
+                    });
+                });
+                $("#upload-end-pic").change(function(){
+                    $.ajaxfileUploadExtend({
+                        uploadType: upload_Type_enum.IMG,
+                        elementSelector: "#upload-end-pic",
+                        success:function(data){
+                            $("#end-pic").val(data.model.fileUrl);
+                            $("#upload-image-end-pic").attr("src", request_url_image + data.model.fileUrl);
+                            $("#upload-image-end-pic").show();
+                        }
+                    });
+                });
+                
+                $("#upload-puzzle-pic").change(function(){
+                    $.ajaxfileUploadExtend({
+                        uploadType: upload_Type_enum.IMG,
+                        elementSelector: "#upload-puzzle-pic",
+                        success:function(data){
+                            $("#puzzle-pic").val(data.model.fileUrl);
+                            $("#upload-image-puzzle-pic").attr("src", request_url_image + data.model.fileUrl);
+                            $("#upload-image-puzzle-pic").show();
+                        }
+                    });
+                });
+                
+                $("#redpacket-activity-rule .delete").unbind().click(function(){
+                    $(this).parents(".redpacket-activity-rule").remove();
+                });
+            }
+            
+            window.onload = function() {
+                showPermission();
+                if(!isNull(id)) {
+                    $.ajaxExtend({
+                        url: request_url_help_redpacket_activity_detail.replace("{id}", id),
+                        type: "GET",
+                        success: function(obj) {
+                            init(obj);
+                        },
+                    });
+                } else {
+                    var obj = {};
+                    obj.model = {rules:[""]};
+                    init(obj);
+                }
+                jQuery.validator.addMethod("dateRangeTo", function(value, element, param) {
+                    if (this.optional(element)) {
+                        return true;
+                    }
+                    var start_date = Date.parse(value);
+                    var end_date = Date.parse($(param).val());
+                    if (isNaN(end_date)) {
+                        return true;
+                    }
+                    return start_date < end_date ? true : false;   
+                }, "请输入合法的日期范围");
+                // 根据红包类型校验最低金额
+            	jQuery.validator.addMethod("minRedpacketAmount", function(value, element, param) {
+                    if (this.optional(element)) {
+                        return true;
+                    }
+                    var amount = Number(value);
+                    var red_packet_type = $("input[name=" + param + "]:checked").val();
+                    if (red_packet_type_enum.WX.key == red_packet_type && amount < 1) {
+                		return false;
+                    }
+                    return true;
+                }, "微信红包的最低金额不能小于1");
+                $("#dataForm").validate({
+                    rules: {
+                        activityTheme: {
+                            required: true,
+                            maxlength:10
+                        },
+                        minRedpacket: {
+                        	required: true,
+                            min:0.01,
+                            minRedpacketAmount:"redpacketType"
+                        },
+                        maxRedpacket: {
+                        	required: true,
+                            min:0.01,
+                        },
+                        multiple: {
+                            min:0.01,
+                            required: true
+                        },
+                        regStartTime: {
+                            date: true,
+                            dateRangeTo: "#reg-end-time",
+                            required: true
+                        },
+                        regEndTime: {
+                            date: true,
+                            required: true
+                        },
+                        startTime: {
+                            date: true,
+                            dateRangeTo: "#end-time",
+                            required: true
+                        },
+                        endTime: {
+                            date: true,
+                            required: true
+                        },
+                    },
+                    messages: {
+                        name: {
+                            required: "请输入活动主题",
+                            maxlength: $.validator.format("活动主题限制{0}字")
+                        },
+                        minRedpacket: {
+                            min: "最小红包额度不能小于{0}",
+                            required: "请输入最小红包额度"
+                        },
+                        maxRedpacket: {
+                            min: "最大红包额度必须大于{0}",
+                            required: "请输入最大红包额度"
+                        },
+                        multiple: {
+                            min: "红包叠加倍数不能小于{0}",
+                            required: "请输入红包叠加倍数"
+                        },
+                        regStartTime: {
+                            required: "请输入报名开始时间"
+                        },
+                        regEndTime: {
+                            required: "请输入报名结束时间"
+                        },
+                        startTime: {
+                            required: "请输入抢红包开始时间"
+                        },
+                        endTime: {
+                            required: "请输入抢红包结束时间"
+                        },
+                    },
+                    submitHandler: function(form) {
+                        var data = {};
+                        $("#dataForm").serializeArray().forEach(function(item){
+                            if (data[item.name] == undefined && item.name == "rules") {
+                                data[item.name] = [item.value];
+                                return;
+                            }
+                            if (data[item.name] != undefined) {
+                                if (!$.isArray(data[item.name])) {
+                                    data[item.name] = [data[item.name]];
+                                }
+                                data[item.name].push(item.value);
+                                return;
+                            }
+                            data[item.name] = item.value;
+                        });
+                        if (!isNull(id)) {
+                            $.ajaxExtend({
+                                url: request_url_help_redpacket_activity_update.replace("{id}", id),
+                                type: "PUT",
+                                data : JSON.stringify(data),
+                                contentType: "application/json; charset=utf-8",
+                                success: function(obj) {
+                                    layer.msg('更新成功！', {icon:1, time:1000});
+                                }
+                            });
+                        } else {
+                            $.ajaxExtend({
+                                url: request_url_help_redpacket_activity_save,
+                                type: "POST",
+                                data : JSON.stringify(data),
+                                contentType: "application/json; charset=utf-8",
+                                success: function(obj) {
+                                    layer.msg('新增成功！', {icon:1, time:1000});
+                                    parent.refresh();
+                                    layer_extend_close();
+                                }
+                            });
+                        }
+                    }
+                });
+                // 用于保存生成红包的方案
+                var plans_json_temp = {plans:[{redpacketIdx:0}]};
+                $("#generate-large-redpacket-open-button").click(function(){
+                    var html = template('generate-large-redpacket-template', {});
+                    var layer_index = layer_extend_show({
+                        type: 1,
+                        title: "生成大额红包",
+                        content: html,
+                        full: false,
+                        width: 600,
+                        height: 400
+                    });
+                    add_plan(plans_json_temp);
+                    $("#generate-large-redpacket-form").validate({
+                        submitHandler: function(form) {
+                            var param_json = {list:[]};
+                            $(".generate-large-redpacket-plan").each(function(idx, plan){
+                                var plan_json = {};
+                                plan_json.redpacketIdx = idx;
+                                plan_json.redpacketAmount = $(plan).find("input[name^=redpacketAmount]").val();
+                                plan_json.redpacketQuantity = $(plan).find("input[name^=redpacketQuantity]").val();
+                                param_json.list.push(plan_json);
+                            });
+                            plans_json_temp.plans = param_json.list;
+                            $.ajaxExtend({
+                                url: request_url_help_redpacket_activity_generate_large_redpacket.replace("{id}", id),
+                                type: "PUT",
+                                data: JSON.stringify(param_json),
+                                contentType: "application/json; charset=utf-8",
+                                success: function(obj) {
+                                    $("#expected-max-redpacket-amount").val(obj.model.expectedMaxRedpacketAmount);
+                                    $("#expected-min-redpacket-amount").val(obj.model.expectedMinRedpacketAmount);
+                                    $("#expected-redpacket-amount").show();
+                                    $("#total-manual-amount").val(obj.model.totalManualAmount)
+                                    $('#contentTable').bootstrapTable('destroy');
+                                    $('#contentTable').bootstrapTable({
+                                        columns: [
+                                            {
+                                                field: 'headimg',
+                                                title: '用户头像',
+                                                sortable: true,
+                                                formatter: getImage,
+                                            },
+                                            {
+                                                field: 'account',
+                                                title: '用户账号',
+                                                sortable: true
+                                            },
+                                            {
+                                                field: 'userNum',
+                                                title: '用户编号',
+                                                sortable: true
+                                            },
+                                            {
+                                                field: 'helpCount',
+                                                title: '助力人数',
+                                                sortable: true
+                                            },
+                                            {
+                                                field: 'originalMoney',
+                                                title: '原始红包金额',
+                                                sortable: true
+                                            },
+                                            {
+                                                field: 'finalMoney',
+                                                title: '最终红包金额',
+                                                sortable: true
+                                            },
+                                        ],
+                                        cache: false,
+                                        pagination: true,
+                                        pageNumber: "1",
+                                        pageSize: "10",
+                                        search: true,
+                                        showRefresh: true,
+                                        data:obj.model.redpacketList
+                                    });
+                                    save_large_redpacket_params = [];
+                                    obj.model.redpacketList.forEach(function(item, idx){
+                                        save_large_redpacket_params[idx] = {};
+                                        save_large_redpacket_params[idx].attendDetailId = item.attendDetailId;
+                                        save_large_redpacket_params[idx].generateLargeRedpacketIndex = item.generateLargeRedpacketIndex;
+                                    });
+                                    $("#confirm-large-redpacket-button").show();
+                                    layer.msg('生成成功！', {icon:1, time:1000}, function(){
+                                        layer.close(layer_index);
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    $("#add-plan-button").click(function(){
+                        add_plan();
+                    });
+                });
+                var save_large_redpacket_params = [];
+                $("#confirm-large-redpacket-button").click(function(){
+                    $.ajaxExtend({
+                        url: request_url_help_redpacket_activity_save_large_redpacket.replace("{id}", id),
+                        type: "PUT",
+                        data: JSON.stringify(save_large_redpacket_params),
+                        contentType: "application/json; charset=utf-8",
+                        success: function(obj) {
+                            // 移除生成大额红包按钮
+                            layer.msg('保存成功！', {icon:1, time:1000});
+                            $("#generate-large-redpacket-open-button,#confirm-large-redpacket-button").remove();
+                            $("#generate_normal_redpacket").show();
+                        }
+                    });
+                });
+                
+                $("#generate_normal_redpacket").click(function(){
+                	var total_auto_amount = $("#total-auto-amount").val();
+                    if(!validation_total_auto_amount(total_auto_amount)) return;
+                    $.ajaxExtend({
+                        url: request_url_help_redpacket_activity_generate_normal_redpacket.replace("{id}", id),
+                        type: "PUT",
+                        data: {"totalAutoAmount":total_auto_amount},
+                        success: function(obj) {
+                            // 移除分配普通红包按钮
+                            layer.msg('分配成功！', {icon:1, time:1000});
+                            $("#generate_normal_redpacket").remove();
+                            get_normal_redpacket_total_amount();
+                        }
+                    });
+                });
+                
+                $("#again_generate_normal_redpacket").click(function(){
+                    var total_auto_amount = $("#total-auto-amount").val();
+                    if(!validation_total_auto_amount(total_auto_amount)) return;
+                    $.ajaxExtend({
+                        url: request_url_help_redpacket_activity_again_generate_normal_redpacket.replace("{id}", id),
+                        type: "PUT",
+                        data: {"totalAutoAmount":total_auto_amount},
+                        success: function(obj) {
+                            // 移除分配普通红包按钮
+                            layer.msg('分配成功！', {icon:1, time:1000});
+                            $("#again_generate_normal_redpacket").remove();
+                            get_normal_redpacket_total_amount();
+                        }
+                    });
+                });
+                
+                $("#contine_generate_normal_redpacket").click(function(){
+                    $.ajaxExtend({
+                        url: request_url_help_redpacket_activity_coutine_generate_normal_redpacket.replace("{id}", id),
+                        type: "PUT",
+                        success: function(obj) {
+                            // 移除分配普通红包按钮
+                            layer.msg('分配成功！', {icon:1, time:1000});
+                            $("#contine_generate_normal_redpacket").remove();
+                            get_normal_redpacket_total_amount();
+                        }
+                    });
+                });
+                
+                $("#add-redpacket_activity-rule").click(function(){
+                    add_rule();
+                });
+                
+                $("#help-redpacket-activity-update").click(function(){
+                    $(this).parents("form").submit();
+                });
+            }
+            
+            function add_plan(generate_large_redpacket_plan) {
+                if (generate_large_redpacket_plan == undefined) {
+                    var plans_size = $(".generate-large-redpacket-plan").length;
+                    generate_large_redpacket_plan = {plans:[{redpacketIdx:plans_size}]};
+                }
+                var generate_large_redpacket_plan_html = template('generate-large-redpacket-plan-template', generate_large_redpacket_plan);
+                $("#generate-large-redpacket-plan").append(generate_large_redpacket_plan_html);
+                $("#generate-large-redpacket-plan .delete").unbind().click(function(){
+                    var plans_size = $(".generate-large-redpacket-plan").length;
+                    if (plans_size > 1) {
+                        $(this).parents(".generate-large-redpacket-plan").remove();
+                    } else {
+                        layer.msg('至少保留一种生产方案！', {icon:5});
+                    }
+                })
+            }
+            
+            function add_rule() {
+                var html = template('redpacket-activity-rule-template', [""]);
+                $("#redpacket-activity-rule").append(html);
+                $("#redpacket-activity-rule .delete").unbind().click(function(){
+                    $(this).parents(".redpacket-activity-rule").remove();
+                });
+            }
+            
+            /*
+             * 循环查询已经分配的金额
+             */
+            function get_normal_redpacket_total_amount() {
+                var temp_normal_redpacket_total_amount = null;
+                var same_times = 1;
+                var interval = window.setInterval(function(){
+                    $.ajaxExtend({
+                        url: request_url_help_redpacket_activity_get_normal_redpacket_total_amount.replace("{id}", id),
+                        type: "GET",
+                        success: function(obj) {
+                            $("#allocated-total-auto-amount").val(obj.model)
+                            var total_auto_amount = $("#total-auto-amount").val();
+                            // 判断上次返回的金额是否与当次金额是否相同
+                            if (temp_normal_redpacket_total_amount == null || temp_normal_redpacket_total_amount != obj.model) {
+                                temp_normal_redpacket_total_amount = obj.model;
+                                same_times = 1;
+                            } else {
+                                if (temp_normal_redpacket_total_amount == obj.model) {
+                                    same_times++;
+                                }
+                            }
+                            // 如果三次的请求是相同的，则清除定时器
+                            if (same_times == 3) {
+                                window.clearInterval(interval);
+                                // 如果总金额小于查询的金额,则弹出异常提示
+                                if (total_auto_amount < obj.model) {
+                                    layer.msg('红包分配异常！', {icon:5});
+                                    var $again_generate_normal_redpacket = $("#again_generate_normal_redpacket");
+                                    if (!$again_generate_normal_redpacket.hasClass("permission_hide")) {
+                                        $again_generate_normal_redpacket.show();
+                                    }
+                                    return;
+                                }
+                                if (total_auto_amount > obj.model) {
+                                    layer.msg('红包分配异常！', {icon:5});
+                                    var $contine_generate_normal_redpacket = $("#contine_generate_normal_redpacket");
+                                    if (!$contine_generate_normal_redpacket.hasClass("permission_hide")) {
+                                        $contine_generate_normal_redpacket.show();
+                                    }
+                                    return;
+                                }
+                                layer.msg('红包分配完成！', {icon:1});
+                            }
+                            
+                        }
+                    });
+                }, 2000);
+            }
+            
+            function validation_total_auto_amount(total_auto_amount) {
+            	if (!total_auto_amount || total_auto_amount <= 0) {
+                    layer.msg('请输入自动分配红包总额！', {icon:5});
+                    return false;
+                }
+            	if (/^\d+(\.\d{1,2})?$/.test(total_auto_amount)) {
+                	total_auto_amount = Number(total_auto_amount);
+                } else {
+                	layer.msg('红包总额为保留两位小数的数字！', {icon:5});
+                	return false;
+                }
+				var expectedMaxRedpacketAmount = Number($("#expected-max-redpacket-amount").val());
+				var expectedMinRedpacketAmount = Number($("#expected-min-redpacket-amount").val());
+				if (expectedMaxRedpacketAmount < total_auto_amount || expectedMinRedpacketAmount > total_auto_amount) {
+					layer.msg('自动分配红包总额必须要预期值之内！', {icon:5});
+					return false;
+				}
+				return true;
+            }
+        </script>
+        <script id="template" type="text/html">
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>活动主题：</label>
+                <div class="formControls col-3">
+                    <input type="text" class="" value="{{model.activityTheme}}" placeholder="请输入活动主题" name="activityTheme" required="true" maxlength="50"/>
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>活动状态：</label>
+                <div class="formControls col-3">
+                    <input type="text" class="" value="{{model.status ? activity_status_enum[model.status].label : '无'}}" readonly="true" />
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>报名开始时间：</label>
+                <div class="formControls col-3">
+                    <input type="text" class=" Wdate" value="{{model.regStartTime}}" placeholder="请输入报名开始时间" name="regStartTime" id="reg-start-time" required="true" readonly="true"/>
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>报名结束时间：</label>
+                <div class="formControls col-3">
+                    <input type="text" class=" Wdate" value="{{model.regEndTime}}" placeholder="请输入报名结束时间" name="regEndTime" id="reg-end-time" required="true" readonly="true"/>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>抢红包开始时间：</label>
+                <div class="formControls col-3">
+                    <input type="text" class=" Wdate" value="{{model.startTime}}" placeholder="请输入抢红包开始时间" name="startTime" id="start-time" required="true" readonly="true"/>
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>抢红包结束时间：</label>
+                <div class="formControls col-3">
+                    <input type="text" class=" Wdate" value="{{model.endTime}}" placeholder="请输入抢红包结束时间" name="endTime" id="end-time" required="true" readonly="true"/>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>最小红包额度：</label>
+                <div class="formControls col-3">
+                    <input type="number" class="" value="{{model.minRedpacket}}" placeholder="请输入最小红包额度" name="minRedpacket" required="true" min="0.01"/>
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>最大红包额度：</label>
+                <div class="formControls col-3">
+                    <input type="number" class="" value="{{model.maxRedpacket}}" placeholder="请输入最大红包额度" name="maxRedpacket" min="0.01" required="true"/>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>红包叠加倍数：</label>
+                <div class="formControls col-3">
+                    <input type="number" class="" value="{{model.multiple}}" placeholder="请输入红包叠加倍数" name="multiple" required="true" min="0.01"/>
+                </div>
+                <label class="form-label col-2">大额红包总额：</label>
+                <div class="formControls col-3">
+                    <input type="number" class="" value="{{model.totalManualAmount}}" id="total-manual-amount" readonly="true"/>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+			<div class="row cl" id="expected-redpacket-amount" {{if (!model.expectedMinRedpacketAmount || !model.expectedMaxRedpacketAmount)}}style="display: none;"{{/if}}>
+				<label class="form-label col-2">预期最小红包总金额：</label>
+				<div class="formControls col-3">
+					<input type="number" value="{{model.expectedMinRedpacketAmount}}" id="expected-min-redpacket-amount" readonly="true"/>
+				</div>
+				<label class="form-label col-2">预期最大红包总金额：</label>
+				<div class="formControls col-3">
+					<input type="number" value="{{model.expectedMaxRedpacketAmount}}"  id="expected-max-redpacket-amount" readonly="true"/>
+				</div>
+				<div class="formControls col-2"></div>
+			</div>
+            <div class="row cl">
+                <label class="form-label col-2">自动分配红包总额：</label>
+                <div class="formControls col-3">
+                    <input type="number" class="" value="{{model.totalAutoAmount}}" id="total-auto-amount"/>
+                </div>
+                <label class="form-label col-2">已分配的普通红包金额：</label>
+                <div class="formControls col-3">
+                    <input type="number" id="allocated-total-auto-amount" readonly="true"/>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2">显示已发送金额：</label>
+                <div class="formControls col-3">
+                    <input type="text" class="" name="sentAmount" value="{{model.sentAmount}}" id="sent-amount"/>
+                </div>
+                <label class="form-label col-2">疑似异常账号总金额：</label>
+                <div class="formControls col-3">
+                    <input type="text" class="" value="{{model.abnormalRedpacketTotalAmount}}" readonly="true"/>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>活动开始图片：</label>
+                <div class="formControls col-3">
+                    <img src="{{model.startPic | assembly_image_path}}" alt="活动宣传图片" id="upload-image-start-pic" class="thumbnail" style="width: 400px;height: 400px;{{if !model.startPic}}display: none;{{/if}}">
+                </div>
+                <div class="formControls col-1">
+                    <label class="btn btn-primary radius" for="upload-start-pic" >&nbsp;&nbsp;上传&nbsp;&nbsp;</label>
+                    <input type="file" id="upload-start-pic" class="input-text" style="display: none;"/>
+                    <input type="hidden" value="{{model.startPic}}" name="startPic" id="start-pic"/>
+                </div>
+                <label class="form-label col-1"><span class="c-red">*</span>活动结束图片：</label>
+                <div class="formControls col-3">
+                    <img src="{{model.endPic | assembly_image_path}}" alt="活动宣传图片" id="upload-image-end-pic" class="thumbnail" style="width: 400px;height: 400px;{{if !model.endPic}}display: none;{{/if}}">
+                </div>
+                <div class="formControls col-1">
+                    <label class="btn btn-primary radius" for="upload-end-pic" >&nbsp;&nbsp;上传&nbsp;&nbsp;</label>
+                    <input type="file" id="upload-end-pic" class="input-text" style="display: none;"/>
+                    <input type="hidden" value="{{model.endPic}}" name="endPic" id="end-pic"/>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>活动结束链接：</label>
+                <div class="formControls col-4">
+                    <input type="url" value="{{model.endUrl}}" name="endUrl" required="true" maxlength="500" style="width:400px;"/>
+                </div>
+                <div class="formControls col-6"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2">微信红包商户名称：</label>
+                <div class="formControls col-3">
+                    <input type="text" class="" value="{{model.wxSendName}}" placeholder="请输入微信红包商户名称" name="wxSendName" maxlength="200"/>
+                </div>
+                <label class="form-label col-2">微信红包祝福语：</label>
+                <div class="formControls col-3">
+                    <input type="text" class="" value="{{model.wxWishing}}" placeholder="请输入微信红包祝福语" name="wxWishing" maxlength="200"/>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2">微信红包活动名称：</label>
+                <div class="formControls col-3">
+                    <input type="text" class="" value="{{model.wxActName}}" placeholder="请输入微信红包活动名称" name="wxActName" maxlength="200"/>
+                </div>
+                <label class="form-label col-2">微信红包备注：</label>
+                <div class="formControls col-3">
+                    <input type="text" class="" value="{{model.wxRemark}}" placeholder="请输入微信红包备注" name="wxRemark" maxlength="200"/>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>是否打开：</label>
+                <div class="formControls col-3">
+                    <div class="radio-box">
+                        <input type="radio" name="open" value="true" id="open-radio-1" {{if model.open}}checked="true"{{/if}}><label for="open-radio-1">是</label>
+                    </div>
+                    <div class="radio-box">
+                        <input type="radio" name="open" value="false" id="open-radio-2" {{if !model.open}}checked="true"{{/if}}><label for="open-radio-2">否</label>
+                    </div>
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>是否关闭活动入口：</label>
+                <div class="formControls col-3">
+                    <div class="radio-box">
+                        <input type="radio" name="closeEntry" value="true" id="close-entry-radio-1" {{if model.closeEntry}}checked="true"{{/if}}><label for="close-entry-radio-1">是</label>
+                    </div>
+                    <div class="radio-box">
+                        <input type="radio" name="closeEntry" value="false" id="close-entry-radio-2" {{if !model.closeEntry}}checked="true"{{/if}}><label for="close-entry-radio-2">否</label>
+                    </div>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>红包类型：</label>
+                <div class="formControls col-3">
+                    {{each red_packet_type_enum as red_packet_type}}
+                        <div class="radio-box">
+                            <input type="radio" name="redpacketType" value="{{red_packet_type.key}}" id="red-packet-type-radio-{{red_packet_type.key}}" {{if model.redpacketType == red_packet_type.key}}checked="true"{{/if}}><label for="red-packet-type-radio-{{red_packet_type.key}}">{{red_packet_type.label}}</label>
+                        </div>
+                    {{/each}}
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>红包活动类型：</label>
+                <div class="formControls col-3">
+                    <select name="type">
+                        {{each red_packet_activity_type_enum as red_packet_activity_type}}
+                            <option value="{{red_packet_activity_type.key}}" {{if red_packet_activity_type.key == model.type}}selected="true"{{/if}}>{{red_packet_activity_type.label}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2">拼图图片：</label>
+                <div class="formControls col-3">
+                    <img src="{{model.puzzlePic | assembly_image_path}}" alt="拼图图片" id="upload-image-puzzle-pic" class="thumbnail" style="width: 400px;height: 400px;{{if !model.puzzlePic}}display: none;{{/if}}">
+                </div>
+                <div class="formControls col-1">
+                    <label class="btn btn-primary radius" for="upload-puzzle-pic" >&nbsp;&nbsp;上传&nbsp;&nbsp;</label>
+                    <input type="file" id="upload-puzzle-pic" class="input-text" style="display: none;"/>
+                    <input type="hidden" value="{{model.puzzlePic}}" name="puzzlePic" id="puzzle-pic"/>
+                </div>
+            </div>
+            <div id="redpacket-activity-rule">
+                {{include 'redpacket-activity-rule-template' model.rules}}
+            </div>
+        </script>
+        <script id="redpacket-activity-rule-template" type="text/html">
+            {{each $data as rule idx}}
+                <div class="row cl redpacket-activity-rule">
+                    <label class="form-label col-2">活动规则：</label>
+                    <div class="formControls col-3">
+                        <textarea name="rules" class="textarea" cols="20" rows="5">{{rule}}</textarea>
+                    </div>
+                    <div class="formControls col-2">
+                        <input class="btn btn-danger radius delete ml-20" type="button" value="删除">                 
+                    </div>
+                    <div class="formControls col-5"></div>
+                </div>
+            {{/each}}
+        </script>
+        <script id="generate-large-redpacket-plan-template" type="text/html">
+            {{each plans as item}}
+                <div class="row cl generate-large-redpacket-plan">
+                    <label class="form-label col-2"><span class="c-red">*</span>红包额度：</label>
+                    <div class="formControls col-3">
+                        <input type="number" class="" value="{{item.redpacketAmount}}" placeholder="请输入红包额度" name="redpacketAmount[{{item.redpacketIdx}}]" required="true" min="0.01" style="width: 100%;"/>
+                    </div>
+                    <label class="form-label col-2"><span class="c-red">*</span>数量：</label>
+                    <div class="formControls col-3">
+                        <input type="number" class="" value="{{item.redpacketQuantity}}" placeholder="请输入红包数量" name="redpacketQuantity[{{item.redpacketIdx}}]" min="1" required="true" style="width: 100%;"/>
+                    </div>
+                    <div class="formControls col-2">
+                        <input class="btn btn-danger radius delete ml-20" type="button" value="删除">                 
+                    </div>
+                </div>
+            {{/each}} 
+        </script>
+        <script id="generate-large-redpacket-template" type="text/html">
+            <form class="form form-horizontal" id="generate-large-redpacket-form">
+                <div id="generate-large-redpacket-plan"></div>
+                <div class="row cl">
+                    <div class="col-9 col-offset-3">
+                        <input class="btn btn-primary radius" type="submit" value="生成红包">
+                        <input class="btn btn-primary radius" type="button" id="add-plan-button" value="添加生成红包方案">
+                    </div>
+                </div>
+            </form>
+        </script>
+    </head>
+    <body>
+        <div class="pd-20">
+            <form class="form form-horizontal" id="dataForm">
+                <div class="row cl" id="data-form-div"></div>
+                <div class="row cl">
+                    <div class="col-9 col-offset-3">
+                        <input class="btn btn-primary radius permission_hide" name="help_redpacket_activity_update" type="button" id="help-redpacket-activity-update" value="保存">
+                        <input class="btn btn-secondary radius ml-50" type="button" id="add-redpacket_activity-rule" value="新增红包活动规则">
+                        <input class="btn btn-secondary radius ml-50 permission_hide" name="help_redpacket_activity_generate_large_redpacket" type="button" id="generate-large-redpacket-open-button" value="分配大额红包" style="display: none;">
+                        <input class="btn btn-secondary radius ml-50" type="button" id="confirm-large-redpacket-button" value="确认大额红包生成记录" style="display: none;">
+                        <input class="btn btn-secondary radius ml-50 permission_hide" name="help_redpacket_activity_generate_large_redpacket" type="button" id="generate_normal_redpacket" value="自动分配普通红包">
+                        <input class="btn btn-secondary radius ml-50 permission_hide" name="help_redpacket_activity_generate_large_redpacket" type="button" id="again_generate_normal_redpacket" value="重新分配普通红包" style="display: none;">
+                        <input class="btn btn-secondary radius ml-50 permission_hide" name="help_redpacket_activity_generate_large_redpacket" type="button" id="contine_generate_normal_redpacket" value="继续分配普通红包" style="display: none;">
+                    </div>
+                </div>  
+            </form>
+            <table id="contentTable">
+            </table>
+        </div>
+    </body>
+</html>

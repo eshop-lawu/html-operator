@@ -1,0 +1,241 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<title>广告详情</title>
+
+		<script id="ad" type="text/html">
+			<div class="row cl">
+				<label class="form-label col-2">广告标题：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.title}}" placeholder="" id="" name="" readonly="true">
+				</div>
+				<label class="form-label col-2">广告类型：</label>
+				<div class="formControls col-2">
+					{{if model.typeEnum == 'AD_TYPE_FLAT'}}
+						<input type="text" class="input-text" value="平面" placeholder="" id="" name="" readonly="true">
+					{{else if model.typeEnum == 'AD_TYPE_VIDEO'}}
+						<input type="text" class="input-text" value="视频" placeholder="" id="" name="" readonly="true">
+					{{else if model.typeEnum == 'AD_TYPE_PRAISE'}}
+						<input type="text" class="input-text" value="E咻" placeholder="" id="" name="" readonly="true">
+					{{else if model.typeEnum == 'AD_TYPE_PACKET'}}
+						<input type="text" class="input-text" value="红包" placeholder="" id="" name="" readonly="true">
+					{{/if}}
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">投放方式：</label>
+				<div class="formControls col-2">
+					{{if model.putWayEnum == 'PUT_WAY_AREAS'}}
+						<input type="text" class="input-text" value="区域" placeholder="" id="" name="" readonly="true">
+					{{else if model.putWayEnum == 'PUT_WAY_FENS'}}
+						<input type="text" class="input-text" value="粉丝" placeholder="" id="" name="" readonly="true">
+					{{else if model.putWayEnum == 'PUT_WAY_RADAR'}}
+						<input type="text" class="input-text" value="雷达" placeholder="" id="" name="" readonly="true">
+					{{else if model.putWayEnum == 'PUT_WAY_COMMON'}}
+						<input type="text" class="input-text" value="普通" placeholder="" id="" name="" readonly="true">
+					{{else if model.putWayEnum == 'PUT_WAY_LUCK'}}
+						<input type="text" class="input-text" value="手气" placeholder="" id="" name="" readonly="true">
+					{{/if}}
+				</div>
+				{{if model.typeEnum == 'AD_TYPE_PRAISE' || model.typeEnum == 'AD_TYPE_PACKET'}}
+					<label class="form-label col-2">投放总金额：</label>
+					{{else}}
+						<label class="form-label col-2">投放总积分：</label>
+				{{/if}}
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.totalPoint}}" placeholder="" id="" name="" readonly="true">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				{{if model.typeEnum == 'AD_TYPE_PRAISE' || model.typeEnum == 'AD_TYPE_PACKET'}}
+					
+					{{else}}
+						<label class="form-label col-2">单个积分：</label>
+						<div class="formControls col-2">
+							<input type="text" class="input-text" value="{{model.point}}" placeholder="" id="" name="" readonly="true">
+						</div>
+				{{/if}}
+				
+				<label class="form-label col-2">广告数量：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.adCount}}" placeholder="" id="" name="" readonly="true">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">开始时间：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.beginTime}}" placeholder="" id="" name="" readonly="true">
+				</div>
+				<label class="form-label col-2">结束时间：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.endTime}}" placeholder="" id="" name="" readonly="true">
+				</div>
+			</div>
+			
+			{{if model.putWayEnum == 'PUT_WAY_AREAS'}}
+				<div class="row cl">
+					<label class="form-label col-2">投放区域：</label>
+					<div class="formControls col-6">
+						<textarea name="" cols="" rows="" class="textarea"  placeholder="" datatype="*10-100" dragonfly="true" readonly="true">{{model.areas}}</textarea>
+					</div>
+				</div>
+			{{/if}}
+			
+			{{if model.putWayEnum == 'PUT_WAY_RADAR'}}
+				<div class="row cl">
+					<label class="form-label col-2">投放距离：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.radius}}" placeholder="" id="" name="" readonly="true">
+					</div>
+				</div>
+			{{/if}}
+			
+			<div class="row cl">
+				<label class="form-label col-2">广告内容：</label>
+				<div class="formControls col-6">
+					<textarea name="" cols="" rows="" class="textarea"  placeholder="" datatype="*10-100" dragonfly="true" readonly="true">{{model.content}}</textarea>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">广告附件：</label>
+				<div class="formControls col-10">
+					{{if model.typeEnum == 'AD_TYPE_VIDEO'}}
+						<video src="{{model.videoUrl}}{{model.mediaUrl}}" controls="controls"></video>
+					{{else}}
+						<a href="{{model.imageUrl}}{{model.mediaUrl}}" data-lightbox="mediaUrl"><img src="{{model.imageUrl}}{{model.mediaUrl}}" width="160"/></a>
+					{{/if}}
+				</div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-2">封面图片：</label>
+				<div class="formControls col-6">
+					<img src="{{model.imageUrl}}{{model.videoImgUrl}}" />
+				</div>
+			</div>
+			
+			{{if model.statusEnum == "AD_STATUS_AUDIT"}}
+				<div class="row cl">
+				<div class="col-10 col-offset-2">
+					<button name="adAudit_pass" onClick="doOperate('{{model.id}}','auditSuccess');" class="btn btn-secondary radius permission_hide" type="button"><i class="Hui-iconfont">&#xe6e1;</i> 审核通过</button>
+					<button name="adAudit_unpass" onClick="auditFail('{{model.id}}','auditFail');" class="btn btn-secondary radius permission_hide" type="button"><i class="Hui-iconfont">&#xe6dd;</i> 审核不通过</button>
+					<button onClick="layer_close();" class="btn btn-default radius" type="button"><i class="Hui-iconfont">&#xe6a6;</i> 取消</button>
+				</div>
+			{{/if}}
+			
+			{{if model.statusEnum == "AD_STATUS_ADD" || model.statusEnum == "AD_STATUS_PUTING"}}
+				<div class="row cl">
+				<div class="col-10 col-offset-2">
+					<!--<button name="adAudit_del" onClick="doOperate('{{model.id}}','del');" class="btn btn-primary radius permission_hide" type="button"><i class="Hui-iconfont">&#xe609;</i> 删除</button>-->
+					<button name="adAudit_soldOut" onClick="down({{model.id}});" class="btn btn-secondary radius permission_hide" type="button"><i class="Hui-iconfont">&#xe6de;</i> 下架</button>
+					<button onClick="layer_close();" class="btn btn-default radius" type="button"><i class="Hui-iconfont">&#xe6a6;</i> 取消</button>
+				</div>
+			{{/if}}
+		</script>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.COMMON, fileGroupConstants.TEMPLATE,fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				var id = getUrlVars()["id"];
+				ajaxRequest.ajax(request_url + "ad/getAd/" + id,"","GET",function(data){
+					var obj = eval(data);
+						if(obj.ret == '1000') {
+							obj.model.imageUrl = request_url_image;
+							obj.model.videoUrl = request_url_video;
+							document.getElementById('type-data').innerHTML= template('ad', obj);
+							initContentLoad();
+						} else {
+							layer.msg('加载失败！', {
+								icon: 5,
+								time: 1000
+							});
+						};
+				});
+			}
+			
+			/**删除、下架**/
+			function doOperate(ids,type) {
+				var confirmStr='是否确认删除？';
+				var layerSuccessStr='删除成功！';
+				var layerFailStr='删除失败！';
+				var url = request_url + 'ad/adDelete/';
+				if(type == 'down'){
+					/*confirmStr='是否确认下架？';
+					layerSuccessStr='下架成功！';
+					layerFailStr='下架失败！';
+					url = request_url + 'ad/adDown/';*/
+				}else if(type == 'auditSuccess'){
+					confirmStr='是否确认审核通过？';
+					layerSuccessStr='操作成功！';
+					layerFailStr='操作失败！';
+					url = request_url + 'ad/auditVideoPass/';
+				}else if(type == 'auditFail'){
+					confirmStr='是否确认审核不通过？';
+					layerSuccessStr='操作成功！';
+					layerFailStr='操作失败！';
+					url = request_url + 'ad/auditVideoUnPass/';
+				}
+				
+				layer.confirm(confirmStr, {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						ajaxRequest.ajax(url + ids,"","PUT",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert(layerSuccessStr, {
+										closeBtn: 0
+									}, function() {
+										var index = parent.layer.getFrameIndex(window.name);
+										parent.$('#btnSubmit').click();
+										parent.layer.close(index);
+									});
+								} else {
+									layer.msg(layerFailStr + obj.msg, {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					},
+					function() {
+						//取消
+					});
+				}
+			
+			function auditFail(id) {
+				layer_show("审核不通过", "ad-audit-fail.html?id=" + id, "", "320");
+			}
+			
+			function down(id) {
+				layer_show("下架", "ad-down.html?id=" + id, "", "320");
+			}
+
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				
+				<div id="type-data">
+				</div>
+			    
+		    </form>
+		</div>
+	</body>
+
+</html>

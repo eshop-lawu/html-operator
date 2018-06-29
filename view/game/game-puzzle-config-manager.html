@@ -1,0 +1,541 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="renderer" content="webkit|ie-comp|ie-stand">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+        <meta http-equiv="Cache-Control" content="no-siteapp" />
+        <title>拼图游戏配置管理</title>
+        <script type="text/javascript" src="../../js/loadExtendFile.js"></script>
+        <script type="text/javascript">
+            // 加载资源文件
+            recursiveloadExtendFile(extendFiles, [
+                fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.VALIDATE,
+                fileGroupConstants.WDATEPICKER,fileGroupConstants.TEMPLATE, fileGroupConstants.COMMON, fileGroupConstants.JQUERY_CHECK, fileGroupConstants.STYLE_PER,
+                fileGroupConstants.BOOTSTRAP,
+            ]);
+            
+            
+            window.onload = function() {
+            	var id,statusEnum='ENABLE';
+            	showPermission();
+            	ajaxRequest.ajax(request_url +"/gamePuzzleConfig/getGamePuzzleConfig","","GET",function(data){
+            		var obj = eval(data);
+            		//console.log(obj)
+            		id=obj.model.id;
+            		if(obj.model.statusEnum == 'ENABLE'){
+            			$("#game_mind_config_able").hide();
+            			$("#game_mind_config_disable").show();
+            		}else{
+            			$("#game_mind_config_able").show();
+            			$("#game_mind_config_disable").hide();
+            		}
+            		var html = template('template', obj);
+                	$("#data-form-div").html(html);
+                	if(obj.model.allots.length==0){
+                		$("#attend-point").val(8);
+                		$("#room-max-num").val(5);
+                		$("#piccount").val(3);
+                		$("#award-star").val(1);
+                		$("#deduct-star").val(1);
+            			addGamedifficultys();
+            			add_allot();
+            		}
+                	
+                	
+                	$(".add-game_mind-score").click(function(){
+                	 	console.log(123)
+	                    add_score();
+	                });
+                	
+            	})
+            	 template.helper("difficulty_type_str",function(difficulty_type){
+						return difficulty_type_enum[difficulty_type].label;
+					});
+					
+		            var difficulty_type_enum = {
+						SIMPLE: { key: "SIMPLE", label: "简单" },
+						COMMONLY: { key: "COMMONLY", label: "一般" },
+						DIFFICULTY: { key: "DIFFICULTY", label: "困难" },
+					} 
+            	$("#add-game_mind-allot").click(function(){
+                    add_allot();
+                });
+                
+			
+				//保存
+            	$("#game_mind_config_update").click(function(){
+            		statusEnum='ENABLE';
+                    $(this).parents("form").submit();
+                });
+                
+                 //启用
+                $("#game_mind_config_able").click(function(){
+                	statusEnum='ENABLE';
+                	$("#forbiddenRemark").val("");
+                    $(this).parents("form").submit();
+                });
+                 
+                //禁用
+                $("#game_mind_config_disable").click(function(){
+                	var forbiddenRemark = $("#forbiddenRemark").val();
+                	if(forbiddenRemark.length == 0 || forbiddenRemark ==''){
+                		layer.msg('备注不能为空');
+                		return false;
+                	}
+                	statusEnum='DISABLE';
+                    $(this).parents("form").submit();
+                    
+                });
+                
+                $("#dataForm").validate({
+                    rules: {
+                        attendPoint: {required: true,number: true},
+                        attendMaxPoint: {required: true,number: true},
+                        roomMaxNum: {required: true,number: true},
+                        freeCount: {required: true,number: true},
+                        shareAttendCount: {required: true,number: true},
+                        picCount: {required: true,number: true},
+                        countDown: {required: true,number: true},
+                        lastScoreMultiple: {required: true,number: true,min:1},
+                        awardPoint: {required: true,number: true},
+                        awardStar: {required: true,number: true},
+                        deductStar: {required: true,number: true}
+                    },
+                    messages: {
+                        attendPoint: {required: "请输入每次参与花费积分",number: "必须为整数"},
+                        attendMaxPoint: {required: "请输入最大花费积分",number: "必须为整数"},
+                        roomMaxNum: {required: "请输入房间最大数量",number: "必须为整数"},
+                        freeCount: {required: "请输入免费次数",number: "必须为整数"},
+                        shareAttendCount: {required: "请输入分享可参与次数",number: "必须为整数"},
+                        picCount: {required: "请输入图片个数",number: "必须为整数"},
+                        countDown: {required: "请输入答题倒计时",number: "必须为整数"},
+                        lastScoreMultiple: {required: "请输入最后一题得分倍数",number: "必须为整数",min:"最小倍数为1倍"},
+                        awardPoint: {required: "请输入奖励积分",number: "必须为整数"},
+                        awardStar: {required: "请输入奖励星星数",number: "必须为整数"},
+                        deductStar: {required: "请输入扣除星星数",number: "必须为整数"},
+                    },
+                    submitHandler: function(form) {
+                        var data = {};
+                        
+                        var difficultys=[];
+						
+						$(".game-puzzle-config-difficultys-data").each(function(){ 
+							var difficulty_type=$(this).find('.difficulty-type').val();
+							var difficulty_coefficient=$(this).find('.difficulty-coefficient').val(); 
+							var difficulty_challengeTime=$(this).find('.difficulty-challengeTime').val();
+							var robotMinSecond=$(this).find('.robotMinSecond').val();
+							var robotMaxSecond=$(this).find('.robotMaxSecond').val();
+							var second=$(this).find('.sec-second').val();
+							var sec_socre=[];
+							
+							//console.log($(this).html())
+							$(this).find(".row .game-mind-config-sec-score-data").each(function(){ 
+								
+								var point=$(this).find('.sec-point').val();
+								var second=$(this).find('.sec-second').val();
+								//var level=$(this).find('.level').val();
+								var scoreParam={
+									"point":point,
+									"second":second
+								};
+								sec_socre.push(scoreParam);
+							}); 
+							console.log(sec_socre);
+							var diff={
+								"leverEnum":difficulty_type,
+								"coefficient":difficulty_coefficient,
+								"challengeTime":difficulty_challengeTime,
+								"secScore":sec_socre,
+								"robotMinSecond":robotMinSecond,
+								"robotMaxSecond":robotMaxSecond
+							};
+							difficultys.push(diff);
+						}); 
+						data['difficultys'] =difficultys;
+						
+						var allots=[];
+						
+                    	$(".game-mind-config-allot-data").each(function(){ 
+						    var points =[];
+						    var stars =[];
+							var attendCount=$(this).find('.attend-count').val();
+							var allotId=$(this).find('.allot-id').val();
+							//console.log($(this).find('.row .allot-point'))
+							$(this).find('.row .allot-point').each(function(){ 
+								var allotPoint = $(this).val();
+								points.push(allotPoint);
+								
+							}); 
+							
+							$(this).find('.row .allot-star').each(function(){ 
+								var allotStar = $(this).val();
+								stars.push(allotStar);
+								
+							}); 
+							var allot={
+								"id":allotId,
+								"attendCount":attendCount,
+								"rankPoint":points,
+								"rankStar":stars
+							};
+							allots.push(allot);
+						}); 
+						data['allotList'] =allots;
+                        $("#dataForm").serializeArray().forEach(function(item){
+                            data[item.name] = item.value;
+                        });
+                        data['statusEnum'] =statusEnum;
+                        //console.log(data);
+                        if (!isNull(id) && id !='') {
+                        	//console.log("----------"+JSON.stringify(data))
+                            $.ajaxExtend({
+                                url: request_url +"/gamePuzzleConfig/updateGamePuzzleConfig/"+id,
+                                type: "PUT",
+                                data : JSON.stringify(data),
+                                contentType: "application/json; charset=utf-8",
+                                success: function(obj) {
+                                    layer.msg('更新成功！', {icon:1, time:1000});
+                                    if(statusEnum == 'ENABLE'){
+				            			$("#game_mind_config_able").hide();
+				            			$("#game_mind_config_disable").show();
+				            		}else{
+				            			$("#game_mind_config_able").show();
+				            			$("#game_mind_config_disable").hide();
+				            		}
+                                }
+                            });
+                        } else {
+                            $.ajaxExtend({
+                                url: request_url +"/gamePuzzleConfig/saveGamePuzzleConfig",
+                                type: "POST",
+                                data : JSON.stringify(data),
+                                contentType: "application/json; charset=utf-8",
+                                success: function(obj) {
+                                    layer.msg('新增成功！', {icon:1, time:1000});
+                                    $("#game_mind_config_able").hide();
+				            		$("#game_mind_config_disable").show();
+                                }
+                            });
+                        }
+                    }
+                });
+            	
+            }
+            
+            function add_allot() {
+                var html = template('game-mind-config-allot-template', [""]);
+                $("#game-mind-config-allot").append(html);
+               
+            }
+            
+            function add_score(obj) {
+                var html = template('game-mind-config-sec-score-template', [""]);
+                console.log($(obj).parent().parent().find(".game-mind-config-sec-score").html())
+                $(obj).parent().parent().find(".game-mind-config-sec-score").append(html);
+                
+            }
+            
+            function delScore(obj){
+            	$(obj).parent().parent().remove();
+            }
+            
+            function delAllot(obj,id){
+            	$(obj).parent().parent().remove();
+            	if(id!=null && id !=undefined && id !=''){
+            		$.ajaxExtend({
+	                    url: request_url +"/gameMindConfig/delAllot/"+id,
+	                    type: "PUT",
+	                    contentType: "application/json; charset=utf-8",
+	                    success: function(obj) {
+	                        //layer.msg('更新成功！', {icon:1, time:1000});
+	                    }
+	                });
+            	}
+            }
+            
+            function setAttendCount(obj,val){
+            	//console.log(val)
+            	var count =[];
+            	var str="";
+            	for(var i=1 ;i<=val;i++){
+            		count.push(str);
+            	}
+            	var html = template('game-mind-config-rank-point-template', count);
+            	var html2 = template('game-mind-config-rank-star-template', count);
+            	
+            	$(obj).parent().parent().parent().find(".row .rank-point").html(html);
+            	$(obj).parent().parent().parent().find(".row .rank-star").html(html2);
+            }
+            
+            
+            function addGamedifficultys(){
+            	var count =[];
+            	var str="";
+            	for(var i=1 ;i<=3;i++){
+            		var lever ,coefficient;
+            		if(i==1){
+            			lever ="SIMPLE";
+            			coefficient=3;
+            		}else if(i==2){
+            			lever ="COMMONLY";
+            			coefficient=4;
+            		}else if(i==3){
+            			lever ="DIFFICULTY";
+            			coefficient=5;
+            		}
+            		var param={
+            			"level":lever,
+            			"coefficient":coefficient,
+            			"secScore":[""]
+            		}
+            		count.push(param);
+            	}
+            	var html = template('game-puzzle-config-difficultys-template', count);
+            	
+            	$("#game-puzzle-config-difficultys").html(html);
+            	//add_score();
+            }
+            
+            
+        </script>
+        <script id="template" type="text/html">
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>每次参与花费积分：</label>
+                <div class="formControls col-3">
+                   <input type="text"  value="{{model.attendPoint}}"  name="attendPoint" id="attend-point" required="true" />
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>用户自定义设置最大花费积分：</label>
+                <div class="formControls col-3">
+                    <input type="text"  value="{{model.attendMaxPoint}}"  name="attendMaxPoint" id="attend-max-point" required="true" />
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>每个房间最大可参入人数：</label>
+                <div class="formControls col-3">
+                    <input type="text"  value="{{model.roomMaxNum}}"  name="roomMaxNum" id="room-max-num" required="true" />
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>每日免费次数：</label>
+                <div class="formControls col-3">
+                    <input type="text"  value="{{model.freeCount}}" name="freeCount" id="free-count" required="true" />
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>分享免费次数：</label>
+                <div class="formControls col-3">
+                     <input type="text"  value="{{model.shareAttendCount}}"  name="shareAttendCount" id="share-attend-count" required="true" />
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>拼图个数：</label>
+                <div class="formControls col-3">
+                    <input type="text"  value="{{model.picCount}}"  name="picCount" id="piccount" required="true" />
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>游戏倒计时：</label>
+                <div class="formControls col-3">
+                   <input type="text"  value="{{model.countDown}}"  name="countDown" id="count-down" required="true" />
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>挑战失败扣除星星：</label>
+                <div class="formControls col-3">
+                      <input type="text"  value="{{model.deductStar}}"  name="deductStar" id="deduct-star" required="true" />
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>挑战成功奖励积分：</label>
+                <div class="formControls col-3">
+                      <input type="text"  value="{{model.awardPoint}}"  name="awardPoint" id="award-point" required="true" />
+                </div>
+                <label class="form-label col-2"><span class="c-red">*</span>挑战成功奖励星星：</label>
+                <div class="formControls col-3">
+                     <input type="text"  value="{{model.awardStar}}"  name="awardStar" id="award-star" required="true" />
+                </div>
+                <div class="formControls col-2"></div>
+            </div>
+            
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>挑战成功所需分数：</label>
+                <div class="formControls col-3">
+                      <input type="text"  value="{{model.successScore}}"  name="successScore" id="success-score" required="true" />
+                </div>
+                <label class="form-label col-2">是否启用机器人（请去头脑中配置）：</label>
+				<div class="formControls col-2">
+					<span class="select-box">
+					<select name="robotStatus" id="robotStatus" class="select" size="1" datatype="*" readonly="readonly">
+						<option value="ENABLED" {{if model.robotStatus == 'ENABLED'}}selected="selected"{{/if}}>启用</option>
+						<option value="DISABLED" {{if model.robotStatus == 'DISABLED'}}selected="selected"{{/if}}>禁用</option>
+					</select>
+					</span>
+				</div>
+                <div class="formControls col-2"></div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2"><span class="c-red">*</span>机器人匹配生效时间（秒请去头脑中配置）：</label>
+                <div class="formControls col-3">
+                      <input type="text"  value="{{model.robotEffectiveTime}}" readonly="readonly"  name="robotEffectiveTime" id="robotEffectiveTime" required="true" />
+                </div>
+               
+            </div>
+            
+             <div>
+            	 <div class="row cl ">
+	                <label class="form-label col-2"><span class="c-red">*</span>难度系数：</label>
+	                <div class="formControls col-8" id="game-puzzle-config-difficultys">
+            			{{include 'game-puzzle-config-difficultys-template' model.difficultys}}
+	                </div>
+	            </div>
+            </div>
+            
+            <div>
+            	 <div class="row cl ">
+	                <label class="form-label col-2"><span class="c-red">*</span>名次分配：</label>
+	                <div class="formControls col-6" id="game-mind-config-allot">
+            			{{include 'game-mind-config-allot-template' model.allots}}
+	                </div>
+	            </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-2">禁用提示语：</label>
+                <div class="formControls col-3">
+                		<input type="text" style="width: 500px;height: 50px;" id="forbiddenRemark"  name="forbiddenRemark" value="{{if model.statusEnum == 'DISABLE'}}{{model.forbiddenRemark}}{{/if}}"/>
+                       <!--<textarea style="height: 50px;" id="forbiddenRemark"  name="forbiddenRemark" cols="" rows="" class="textarea" >
+                       	
+                       </textarea>-->
+                       <span>游戏禁用时候必须填写</span>
+                </div>
+            </div>
+            <!--<div>
+            	<div class="row cl">
+	                <label class="form-label col-2"><span class="c-red">*</span>答题时间得分设置：</label>
+	                <div class="formControls col-8" id="game-mind-config-sec-score">
+            			{{include 'game-mind-config-sec-score-template' model.secScores}}
+            	  </div>
+            </div>-->
+            
+        </script>
+        
+        <script id="game-mind-config-allot-template" type="text/html">
+              {{each $data as item index}}
+                <div class="row cl game-mind-config-allot-data">
+                	<div class="row cl">	
+	                    <label class="form-label col-4"><span class="c-red">*</span>参与人数：</label>
+	                    <div class="formControls col-8" style="">
+	                    	<input type="hidden"  class="allot-id" value="{{item.id}}"/>
+	                        <input type="number" onchange="setAttendCount(this,this.value);" class="attend-count" style="width: 60px;" value="{{item.attendCount}}"  required="true"  />
+	                    </div>
+                    </div>
+                    
+                     <div class="row cl">	
+	                    <label class="form-label col-4"><span class="c-red">*</span>对应积分比例(顺序排名)：</label>
+	                    <div class="formControls col-8 rank-point" style="" >
+	                    	{{include 'game-mind-config-rank-point-template' item.rankPoint}}
+	                    </div>
+                    </div>
+                    
+                    <div class="row cl">	
+	                    <label class="form-label col-4"><span class="c-red">*</span>对应星星个数(顺序排名)：</label>
+	                    <div class="formControls col-8 rank-star" style="" >
+	                    	{{include 'game-mind-config-rank-star-template' item.rankStar}}
+	                          
+	                    </div>
+                    </div>
+                    <div class="formControls col-10">
+                        <input onclick="delAllot(this,{{item.id}})" style="margin-left: 460px;" class="btn btn-danger radius delete ml-20" type="button" value="删除">                 
+                    </div>
+                </div>
+            {{/each}}
+        </script>
+        
+        <script id="game-mind-config-rank-point-template" type="text/html">
+        	 {{each $data as point }}
+            	<input style="display: inline-block;float: left;width: 60px; margin-right: 5px;" type="number" class="allot-point" value="{{point}}"  name="" required="true"/>
+             {{/each}}
+        </script>
+        
+         <script id="game-mind-config-rank-star-template" type="text/html">
+         	 {{each $data as star }}
+            	<input type="number" style="display: inline-block;float: left;width: 60px;margin-right: 5px;" class="allot-star" value="{{star}}" min="0"   name="" required="true"/>
+             {{/each}}
+        </script>
+        
+        <script id="game-mind-config-sec-score-template" type="text/html">
+            
+              {{each $data as item}}
+                <div class="row cl game-mind-config-sec-score-data">
+                    <label class="form-label col-2"><span class="c-red">*</span>秒数：</label>
+                    <div class="formControls col-1">
+                        <input type="number" style="display: inline-block;float: left;width: 60px; margin-right: 5px;" class="sec-second" value="{{item.second}}"  name="" required="true"  />
+                    </div>
+                    <label class="form-label col-2"><span class="c-red">*</span>对应分数：</label>
+                    <div class="formControls col-1">
+                        <input type="number" style="display: inline-block;float: left;width: 60px;margin-right: 5px;" class="sec-point" value="{{item.point}}"  name="" required="true"/>
+                    </div>
+                     <label class="form-label col-2"></label>
+                    <div class="formControls col-1">
+                        <input onclick="delScore(this)" style="display: inline-block;float: left;width: 60px;margin-right: 5px;" class="btn btn-danger radius delete ml-20" type="button" value="删除">                 
+                    </div>
+                </div>
+            {{/each}}
+              
+        </script>
+        
+        
+        <script id="game-puzzle-config-difficultys-template" type="text/html">
+            
+              {{each $data as item}}
+                <div class="row cl game-puzzle-config-difficultys-data" style="margin-top: 50px;">
+                	<label class="form-label col-1">{{item.level | difficulty_type_str}}</label>
+                    <div class="formControls">
+                        <input type="hidden" style="display: inline-block;float: left;width: 60px; margin-right: 5px;" class="difficulty-type" value="{{item.level}}"  name="" required="true"  />
+                    </div>
+                	<label class="form-label col-1"><span class="c-red">*</span>困难度：</label>
+                    <div class="formControls col-1">
+                        <input type="number" style="display: inline-block;float: left;width: 60px; margin-right: 5px;" class="difficulty-coefficient" value="{{item.coefficient}}"  name="" required="true"  />
+                    </div>
+                   
+                     <label class="form-label col-2"><span class="c-red">*</span>挑战时间：</label>
+                    <div class="formControls col-1">
+                        <input type="number" style="display: inline-block;float: left;width: 60px;" class="difficulty-challengeTime" value="{{item.challengeTime}}"  name="" required="true"/>
+                    </div>
+                    <label class="form-label col-3"><span class="c-red">*</span>机器人拼图时间范围（秒）：</label>
+	                <div class="formControls col-3">
+	                      <input type="text" style="width: 50px;"  value="{{item.robotMinSecond}}"  name="" class="robotMinSecond" required="true" />-
+	                      <input type="text" style="width: 50px;" value="{{item.robotMaxSecond}}"  name="" class="robotMaxSecond" required="true" />
+	                </div>
+                    <div class="row cl">
+		                <label class="form-label col-3"><span class="c-red">*</span>答题时间得分设置：</label>
+		                <div class="formControls col-8 game-mind-config-sec-score">
+	            			{{include 'game-mind-config-sec-score-template' item.secScores}}
+	            	    </div>
+	            	 </div>
+	            	 
+	            	<div class="formControls col-2">
+                        <input class="btn btn-secondary radius ml-50" type="button" class="add-game_mind-score" onclick="add_score(this);" value="新增答题时间得分设置">
+                    </div>
+	            	
+                </div>
+            {{/each}}
+              
+        </script>
+        
+    </head>
+    <body>
+        <div class="pd-20">
+            <form class="form form-horizontal" id="dataForm">
+                <div class="row cl" id="data-form-div"></div>
+                <div class="row cl">
+                    <div class="col-9 col-offset-3">
+                        <input class="btn btn-primary radius permission_hide" name="game_puzzle_config_update" type="button" id="game_mind_config_update" value="保存">
+                        <input class="btn btn-primary radius " type="button" id="game_mind_config_disable" value="禁用">
+                         <input class="btn btn-primary radius " type="button" id="game_mind_config_able" value="启用">
+                        <input class="btn btn-secondary radius ml-50" type="button" id="add-game_mind-allot" value="新增名次分配">
+                    </div>
+                </div>  
+            </form>
+        </div>
+    </body>
+</html>

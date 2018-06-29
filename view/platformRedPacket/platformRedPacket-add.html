@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>添加红包</title>
+
+	<script type="text/javascript">
+		recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.COMMON, fileGroupConstants.VALIDATE
+			]);
+		window.onload = function() {
+			
+			$("#dataForm").attr("action", request_url + "platformRedPacket/saveRedPacket");
+			$("#dataForm").validate({
+				rules: {
+					money: { required:true, min:0.01, max:10000}
+				},
+				messages: {
+					money: {required: "请输入金额",min: "金额不能低于0.01 ",max:"金额不能超过10000"}
+				},
+				submitHandler: function(form) {
+					ajaxRequest.ajaxSub(form, function(data) {
+						var obj = eval(data);
+						if(obj.ret == '1000') {
+							var index = parent.layer.getFrameIndex(window.name);
+							parent.location.reload();
+							parent.layer.close(index);
+							
+						} else {
+							layer.msg('操作失败！' + obj.msg, {
+								icon: 5,
+								time: 1000
+							});
+						}
+					});
+				}
+			});
+	
+		}
+</script>
+</head>
+<body>
+<div class="pd-20 ">
+	<form action=""  method="post" class="form form-horizontal" id="dataForm">
+		
+		
+		<div class="row cl">
+			<label class="form-label col-3"><span class="c-red">*</span>设置金额：</label>
+			<div class="formControls col-5">
+				<input type="text" class="input-text" value="" placeholder="" id="money" name="money"  nullmsg="金额不能为空">
+			</div>
+			<label id="moneyError" style="color: red;"></label>
+			<div class="col-4"> </div>
+		</div>
+		
+		<div class="row cl">
+			<div class="col-9 col-offset-3">
+				<button class="btn btn-secondary radius" type="submit"> 提交</button>
+			</div>
+		</div>
+	</form>
+</div>
+</div>
+
+</body>
+
+</html>

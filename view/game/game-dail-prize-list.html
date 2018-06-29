@@ -1,0 +1,185 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<title>奖品详情</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			var gameDialId ;
+			window.onload = function() {
+				
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				$('#contentTable').bootstrapTable({
+					url: request_url + "gameDialPrize/page",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+				gameDialId = getUrlVars()["gameDialId"];
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					if (item.name == "statusEnum" && item.value == "") {
+						return true;
+					}
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			function statusEnum(value, row, index) {
+				if(row.status == 'VALID'){
+					return "有效";
+				}
+				if(row.status == 'INVALID'){
+					return "无效";
+				}
+				
+			}
+			
+			function typeEnum(value, row, index) {
+				if(row.prizeType == 'MONEY'){
+					return "金额";
+				}
+				if(row.prizeType == 'POINT'){
+					return "积分";
+				}
+				if(row.prizeType == 'STAR'){
+					return "星星";
+				}
+				if(row.prizeType == 'PRODUCT'){
+					return "商品";
+				}
+				
+			}
+			
+			function imgPath(value, row, index) {
+				return '<a href="' + request_url_image + row.imgPath + '" data-lightbox="imgPath"><img class="radius" src="' + request_url_image + row.imgPath + '" onerror="this.src=\'' + rootPath + '/images/user.png\';" style="height:80px;"></a>';
+			}
+			
+			function adImgPath(value, row, index) {
+				return '<a href="' + request_url_image + row.adImgPath + '" data-lightbox="adImgPath"><img class="radius" src="' + request_url_image + row.adImgPath + '" onerror="this.src=\'' + rootPath + '/images/user.png\';" style="height:80px;"></a>';
+			}
+			
+			function price(value, row, index) {
+				return '￥' + row.price ;
+			}
+			
+			function freightPrice(value, row, index) {
+				return '￥' + row.freightPrice ;
+			}
+			
+			function edit(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "奖品编辑",
+					content: "game-dail-prize-edit.html?id=" + id+"&gameDialId=" +gameDialId
+				});
+				layer.full(index);
+			}
+			
+			function add(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "奖品新增",
+					content: "game-dail-prize-add.html?gameDialId=" +gameDialId
+				});
+				layer.full(index);
+			}
+			
+			function updatePrize(id,type){
+				var tipsTxt = '删除';
+				var url = request_url + "/gameDialPrize/delGameDialPrize/";
+				layer.confirm('是否确认' + tipsTxt + '？', {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						ajaxRequest.ajax(url + id,"","PUT",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert(tipsTxt + '成功！', {
+										closeBtn: 0
+									}, function() {
+										location.replace(location.href);
+									});
+								} else {
+									layer.msg(tipsTxt + '失败！', {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					},
+					function() {
+						//取消
+					});
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				var html = "";
+				html += "<a href='javascript:;' name='game_prize_update' class='permission_hide' onclick='edit(\"" + row.id + "\")'>编辑</a>&nbsp;|&nbsp;";
+				html += "<a href='javascript:;' name='game_prize_del' class='permission_hide' onclick='updatePrize(\"" + row.id + "\",\"del\")'>删除</a>";
+				
+				return html;
+			}
+			
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+					<input type="text" style="width:250px" placeholder="奖品名称" name="name">
+					状态：
+					<select name="statusEnum">
+						<option value="">全部</option>
+						<option value="VALID">有效</option>
+						<option value="INVALID">无效</option>
+					</select>
+				</form>
+				<button class="btn btn-success radius" id="btnSubmit" type=""><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+			</div>
+			<div class="mt-20">
+				<div class="cl pd-5 bg-1 bk-gray mt-20" id="addPrize"> 
+					<span class="l">
+					<a href="javascript:;" name="game_prize_add" onclick="add()" class="btn btn-primary radius permission_hide">新增奖品</a>
+					</span>
+				</div>
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-field="id" data-visible="false">id</th>
+							<th data-width="10%" data-formatter="imgPath" data-visible="true">奖品图片</th>
+							<th data-width="15%" data-field="name" data-visible="true">奖品名称</th>
+							<th data-width="5%" data-formatter="typeEnum">奖品类型</th>
+							<th data-width="5%" data-formatter="price" data-visible="true">奖品价格</th>
+							<th data-width="5%" data-formatter="freightPrice" data-visible="true">运费</th>
+							<th data-width="5%" data-field="number" data-visible="true">奖品数量</th>
+							<th data-width="5%" data-field="inventory" data-visible="true">奖品库存</th>
+							<th data-width="5%" data-field="rate" data-visible="true">中奖概率(%)</th>
+							<th data-width="5%" data-formatter="statusEnum">状态</th>
+							<th data-width="10%" data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

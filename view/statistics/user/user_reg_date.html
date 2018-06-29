@@ -1,0 +1,214 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="renderer" content="webkit|ie-comp|ie-stand">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+	<script src="../../../js/loadExtendFile.js"></script>
+	<script src="../../../js/echarts.js"></script>
+	<title>用户注册时间统计</title>
+	<script type="text/javascript">
+		recursiveloadExtendFile(extendFiles, [
+			fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+		]);
+		
+		window.onload = function() {
+			var h=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight;
+	        var w=window.innerWidth||document.documentElement.clientWidth||document.body.clientWidth;
+	        document.getElementById("main").style.height=(h*0.8)+"px";
+	        document.getElementById("main").style.weight=w+"px";
+	        
+			var dateNow = new Date();
+			var yearNow = dateNow.getFullYear(); 
+ 			var monthNow = dateNow.getMonth() + 1;
+ 			var dayNow = dateNow.getDate();
+		    if(monthNow < 10){
+		    	monthNow = '0' + monthNow;
+		    }
+		    if(dayNow < 10){
+		    	dayNow = '0' + dayNow;
+		    }
+		    $("#bdate").val(yearNow + '-' + monthNow + '-01');
+		    $("#edate").val(yearNow + '-' + monthNow + '-' + dayNow);
+		    getUserRegDate($("#bdate").val(),$("#edate").val(),1);
+		    
+		    document.getElementById("bdate").onfocus = function(){
+				if($("#flag").val() == '1'){
+					WdatePicker({dateFmt:'yyyy-MM-dd',maxDate:'#F{$dp.$D(\'edate\')}'});
+				}else if($("#flag").val() == '2') {
+					WdatePicker({dateFmt:'yyyy-MM',maxDate:'#F{$dp.$D(\'edate\')}'});
+				}
+			}
+			document.getElementById("edate").onfocus = function(){
+				if($("#flag").val() == '1'){
+					WdatePicker({dateFmt:'yyyy-MM-dd',minDate:'#F{$dp.$D(\'bdate\')}'});
+				}else if($("#flag").val() == '2') {
+					WdatePicker({dateFmt:'yyyy-MM',minDate:'#F{$dp.$D(\'bdate\')}'});
+				}
+			}
+			$("#day").addClass("active");
+			initContentLoad();
+		}
+		
+		function search(){
+			var beginDate = $("#bdate").val();
+			var endDate = $("#edate").val();
+			var flag = $("#flag").val();
+			if(beginDate == "" || endDate == ""){
+				layer.msg('请选择时间！', {
+					icon: 5,
+					time: 1000
+				});
+				return;
+			}
+			getUserRegDate(beginDate,endDate,flag);
+		}
+		
+		function getUserRegDate(beginDate,endDate,flag){
+			var url = 'userReg/getReportUserRegDaily';
+			if(flag == 2){
+				url = 'userReg/getReportUserRegMonth';
+			}
+			$.ajax({
+				url: request_url + url + '?beginDate=' + beginDate + '&endDate=' + endDate,
+				type: "GET",
+				success: function(data) {
+					var obj = eval(data);
+					if(obj.ret == '1000') {
+						showUserRegDate(obj.model,flag);
+					} else {
+						layer.msg('获取数据失败！', {
+							icon: 5,
+							time: 1000
+						});
+					};
+				},
+				error: function(data) {
+					layer.msg('获取数据异常！', {
+						icon: 5,
+						time: 1000
+					});
+				}
+			});
+		}
+		
+		function doDay(){
+			$("#flag").val("1");
+			$("#day").addClass("active");
+			$("#month").removeClass("active");
+			$("#bdate").val("");
+			$("#edate").val("");
+		}
+		function doMonth(){
+			$("#flag").val("2");
+			$("#day").removeClass("active");
+			$("#month").addClass("active");
+			$("#bdate").val("");
+			$("#edate").val("");
+		}
+		
+		var myChart = '';
+		function showUserRegDate(showData,flag){
+			var xAxisData = [];
+			var seriesMemData = [];
+			var seriesMerData = [];
+			for(var i=0;i<showData.length;i++){
+				if(flag == 1){
+					xAxisData.push(showData[i].gmtReport.substring(5,10));
+				}else{
+					xAxisData.push(showData[i].gmtReport.substring(0,7));
+				}
+				seriesMemData.push(showData[i].memberCount);
+				seriesMerData.push(showData[i].merchantCount);
+			}
+			
+			
+			if(myChart == ''){
+				// 基于准备好的dom，初始化echarts实例
+				myChart = echarts.init(document.getElementById('main'));
+			}
+	        // 指定图表的配置项和数据
+	        var option = {
+			    title: {
+			        text: ''
+			    },
+			    tooltip: {
+			        trigger: 'axis'
+			    },
+			    legend: {
+			        data:['会员','商家']
+			    },
+			    grid: {
+			        left: '3%',
+			        right: '4%',
+			        bottom: '3%',
+			        containLabel: true
+			    },
+			    /*toolbox: {
+			        feature: {
+			            saveAsImage: {}
+			        }
+			    },*/
+			    toolbox: {
+			        show: true,
+			        feature: {
+			            dataZoom: {
+			                yAxisIndex: 'none'
+			            },
+			            dataView: {readOnly: true},
+			            magicType: {type: ['line', 'bar']},
+			            restore: {},
+			            saveAsImage: {}
+			        }
+			    },
+			    xAxis: {
+					type: 'category',
+			        boundaryGap: false,
+			        data: xAxisData
+				},
+			    yAxis: {
+			        type: 'value'
+			    },
+			    series: [
+			        {
+			            name:'会员',
+			            type:'line',
+			            data:seriesMemData
+			        },
+			        {
+			            name:'商家',
+			            type:'line',
+			            data:seriesMerData
+			        }
+			    ]
+			};
+	        myChart.setOption(option);
+		}
+	</script>
+</head>
+<body>
+	<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 统计分析 <span class="c-gray en">&gt;</span> 用户注册时间统计
+		<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+	</nav>
+	<div class="pd-20">
+		<div class="text-c">
+			<form id="searchForm">
+				<div class="row cl">
+					<div class="btn-group btn-group-justified" role="group" aria-label="...">
+					  <button type="button" id="day" onclick="doDay()" class="btn btn-default">日统计</button>
+					  <button type="button" id="month" onclick="doMonth()" class="btn btn-default">月统计</button>
+					</div>
+					<input type="text" id="bdate" name="beginDate" class="input-medium Wdate" style="width:170px;margin-top: 14px;"> -
+					<input type="text" id="edate" name="endDate" class="input-medium Wdate" style="width:170px;margin-top: 14px;">
+					<input type="hidden" id="flag" value="1">
+					&nbsp;&nbsp;&nbsp;
+					<button class="btn btn-success radius" type="button" onclick="search();"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+				</div>
+			</form>
+		</div>
+		
+		<div class="mt-20" id="main"></div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<title>添加</title>
+		<script src="../../js/loadExtendFile.js"></script>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER,
+				fileGroupConstants.COMMON, fileGroupConstants.DISTRICT, fileGroupConstants.VALIDATE
+			]);
+			window.onload = function() {
+			
+				var id = getUrlVars()["id"];
+				var tipsTxt = "新增";
+				$("#dataForm input[name='id']").val(id);
+				if(id != "" && id != undefined) {
+					tipsTxt = "修改";
+					ajaxRequest.ajax(request_url+"recommendProductCategory/getRecommendProductCategory/" + id,"","GET",function(data){
+						var obj = eval(data);
+							if(obj.ret == '1000') {
+								var isVisible =0;
+								var isHot = 0;
+								$("input[name='categoryId']").val(obj.model.categoryId);
+								$("input[name='categoryName']").val(obj.model.categoryName);
+								$("input[name='ordinal']").val(obj.model.ordinal);
+								$("#imagePath").val(obj.model.imagePath);
+								if(obj.model.imagePath !=""){
+									$("#upload_img").attr("src",request_url_image+obj.model.imagePath);
+								}
+						
+								if(obj.model.isvisible){
+									isVisible = 1;
+								}
+								if(obj.model.isHot){
+									isHot = 1;
+								}
+								$("input[name='isvisible']").each(function() {
+									console.log($(this).val() && obj.model.isvisible);
+									if($(this).val()==isVisible){
+										$(this).parent().addClass('checked');
+										$(this).attr("checked","checked");
+									}
+								});
+								$("input[name='isHot']").each(function() {
+									if($(this).val()==isHot){
+										$(this).parent().addClass('checked');
+										$(this).attr("checked","checked");
+									}
+								});
+							} else {
+								layer.msg('加载失败！', {
+									icon: 5,
+									time: 1000
+								});
+							};
+					});
+				}
+				
+				$("#dataForm").validate({
+
+					rules: {
+						categoryName: {
+							required: true
+						},
+						ordinal: {
+							required: true
+						}
+					},
+					messages: {
+						categoryName: {
+							required: "请输入分类名称"
+						},
+						ordinal: {
+							required: "请输入排序位置"
+						}
+					},
+					submitHandler: function(form) {
+						ajaxRequest.ajaxSub(form,function(data) {
+							var obj = eval(data);
+							if(obj.ret == '1000') {
+								layer.confirm(tipsTxt + '成功！', {
+									btn: ['确认']
+								}, function() {
+									var index = parent.layer.getFrameIndex(window.name);
+									parent.$('#btnSubmit').click();
+									parent.layer.close(index);
+								});
+							} else {
+								layer.msg(tipsTxt + '失败！' + obj.msg, {
+									icon: 5,
+									time: 1000
+								});
+							}
+						});
+					}
+				});
+				
+				$("#upload").change(function(){
+					$.ajaxfileUploadExtend({
+						uploadType: upload_Type_enum.IMG,
+						elementSelector: "#upload",
+						success:function(data){
+							$("#imagePath").val(data.model.fileUrl);
+							$("#upload_img").attr("src",request_url_image+data.model.fileUrl);
+							$("#upload_img").show();
+						}
+					});
+				});
+			}
+			function getUrl(){
+				var id =  $("#dataForm input[name='id']").val();
+				$("#dataForm").attr("action",request_url+"recommendProductCategory/updateRecommendProductCategory/"+id);
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<form action="" method="POST" class="form form-horizontal" id="dataForm" onsubmit="getUrl()">
+				 <input type="hidden" name="id" value="" />
+				<!--<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>分类ID：</label>
+					<div class="formControls col-5">
+						<input type="text" class="input-text" value="" name="categoryId">
+					</div>
+				</div>-->
+				<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>分类名称：</label>
+					<div class="formControls col-5">
+						<input type="text" class="input-text" value="" name="categoryName">
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-3"><span class='c-red'>*</span>分类图标：</label>
+					<div class="formControls col-3">
+							<label class="btn btn-primary radius" id="upload-label" for="upload" >&nbsp;&nbsp;上传&nbsp;&nbsp;</label>
+							<input type="file" id="upload" class="input-text" style="display: none;"/>
+							<input type="hidden" name="imagePath" id="imagePath"/>
+							<span ><img width="70px" height="70px" id="upload_img" src=""/></span>
+					</div>
+					<div class="col-4"> </div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>是否可见：</label>
+					<div class="formControls col-5">
+						<div class="radio-box type_link">
+							<input type="radio" id="visible-1" name="isvisible" value="1">
+							<label for="sex-1">是</label>
+						</div>
+						<div class="radio-box">
+							<input type="radio" id="visible-2" name="isvisible" value="0">
+							<label for="sex-2">否</label>
+						</div>
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>是否热门：</label>
+					<div class="formControls col-5">
+						<div class="radio-box type_link">
+							<input type="radio" id="hot-1" name="isHot" value="1">
+							<label for="sex-1">是</label>
+						</div>
+						<div class="radio-box">
+							<input type="radio" id="hot-2" name="isHot" value="0">
+							<label for="sex-2">否</label>
+						</div>
+					</div>
+				</div>
+				
+				<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>排序：</label>
+					<div class="formControls col-5">
+						<input type="number" class="input-text" value="" name="ordinal">
+					</div>
+				</div>
+				
+				<div class="row cl">
+					<div class="col-9 col-offset-3">
+						<input type="hidden" name="id" value="0">
+						<input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+					</div>
+				</div>
+			</form>
+		</div>
+		</div>
+
+	</body>
+
+</html>

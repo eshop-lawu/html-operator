@@ -1,0 +1,188 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>积分抽奖</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, 
+				fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,
+				fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				$('#contentTable').bootstrapTable({
+					url: request_url + "pointLotteryActivity/listOperatorPointLotteryActivity",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					if (item.name == "statusEnum" && item.value == "") {
+						return true;
+					}
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				var html = "";
+				if(row.statusEnum != 'DELETE'){
+					html += "<a href='javascript:;' name='point_lottery_add' class='permission_hide' onclick='edit(\"" + row.id + "\")'>编辑</a>";
+				}
+				if(row.statusEnum == 'UNPUBLISHED'){
+					html += "&nbsp;|&nbsp;<a href='javascript:;' name='point_lottery_publish' class='permission_hide' onclick='updateActivity(\"" + row.id + "\",\"publish\")'>发布</a>&nbsp;|&nbsp;";
+					html += "<a href='javascript:;' name='point_lottery_del' class='permission_hide' onclick='updateActivity(\"" + row.id + "\",\"del\")'>删除</a>";
+				}
+				if(row.statusEnum == 'PARTICIPATION_END'){
+					html += "&nbsp;|&nbsp;<a href='javascript:;' name='point_lottery_draw' class='permission_hide' onclick='updateActivity(\"" + row.id + "\",\"draw\")'>开奖</a>";
+				}
+				if(row.statusEnum == 'PROCESSING' || row.statusEnum == 'PARTICIPATION_END' || row.statusEnum == 'ALREADY_LOTTERY'){
+					html += "&nbsp;|&nbsp;<a href='javascript:;' name='' class='' onclick='listRecord(\"" + row.id + "\")'>参与记录</a>";
+				}
+				return html;
+			}
+			
+			function edit(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "活动编辑",
+					content: "point-activity-edit.html?id=" + id
+				});
+				layer.full(index);
+			}
+			
+			function add(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "活动新增",
+					content: "point-activity-add.html"
+				});
+				layer.full(index);
+			}
+			
+			function listRecord(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "活动详情",
+					content: "point-lottery-activity-record-list.html?id=" + id
+				});
+				layer.full(index);
+			}
+			
+			function prizeImagePath(value, row, index) {
+				return '<img class="radius" src="' + request_url_image + row.prizeImagePath + '" onerror="this.src=\'' + rootPath + '/images/user.png\';" style="height:30px;">';
+			}
+			
+			function prizePrice(value, row, index) {
+				return '￥' + row.prizePrice ;
+			}
+			
+			function updateActivity(id,type){
+				var tipsTxt = '发布';
+				var url = request_url + "/pointLotteryActivity/publishPointLotteryActivity/";
+				if(type == 'del'){
+					tipsTxt = '删除';
+					url = request_url + "/pointLotteryActivity/delPointLotteryActivity/";
+				}else if(type == 'draw'){
+					tipsTxt = '开奖';
+					url = request_url + "/pointLotteryActivity/drawPointLotteryActivity/";
+				}
+				layer.confirm('是否确认' + tipsTxt + '？', {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						ajaxRequest.ajax(url + id,"","PUT",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert(tipsTxt + '成功！', {
+										closeBtn: 0
+									}, function() {
+										location.replace(location.href);
+									});
+								} else {
+									layer.msg(tipsTxt + '失败！', {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					},
+					function() {
+						//取消
+					});
+			}
+			
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 活动管理 <span class="c-gray en">&gt;</span> 积分抽奖
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+					<input type="text" style="width:250px" placeholder="奖品名称" name="prizeName">
+					添加时间：
+					<input type="text" onfocus="WdatePicker({maxDate:'#F{$dp.$D(\'datemax\')||\'%y-%M-%d\'}'})" id="datemin" name="beginTime" class="input-medium Wdate" style="width:120px;"> -
+					<input type="text" onfocus="WdatePicker({minDate:'#F{$dp.$D(\'datemin\')}',maxDate:'%y-%M-%d'})" id="datemax" name="endTime" class="input-medium Wdate" style="width:120px;">
+					状态：
+					<select name="statusEnum">
+						<option value="">全部</option>
+						<option value="UNPUBLISHED">未发布</option>
+						<option value="PROCESSING">进行中</option>
+						<option value="PUBLISHED">即将开始</option>
+						<option value="PARTICIPATION_END">已结束</option>
+						<option value="ALREADY_LOTTERY">已开奖</option>
+						<option value="DELETE">删除</option>
+					</select>
+				</form>
+				<button class="btn btn-success radius" id="btnSubmit" type=""><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+			</div>
+			<div class="mt-20">
+				<div class="cl pd-5 bg-1 bk-gray mt-20"> 
+					<span class="l">
+					<a href="javascript:;" name="point_lottery_add" onclick="add()" class="btn btn-primary radius permission_hide">新增</a>
+					</span>
+				</div>
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-field="id" data-visible="false">id</th>
+							<th data-width="5%" data-formatter="prizeImagePath" data-visible="true">奖品图片</th>
+							<th data-width="17%" data-field="prizeName" data-visible="true">奖品名称</th>
+							<th data-width="5%" data-formatter="prizePrice" data-visible="true">奖品价值</th>
+							<th data-width="5%" data-field="lotteryPoint" data-visible="true">抽奖积分</th>
+							<th data-width="5%" data-field="lotteryCount" data-visible="true">中奖人数</th>
+							<th data-width="5%" data-field="statusDes" data-visible="true">活动状态</th>
+							<th data-width="5%" data-field="beginTime" data-visible="true">开始时间</th>
+							<th data-width="5%" data-field="endTime" data-visible="true">结束时间</th>
+							<th data-width="8%" data-field="drawTime" data-visible="true">抽奖时间</th>
+							<th data-width="5%" data-field="lotteryTime" data-visible="true">开奖时间</th>
+							<th data-width="5%" data-field="hotNumber" data-visible="true">热度人数</th>
+							<th data-width="5%" data-field="attentNumber" data-visible="true">参与人数</th>
+							<th data-width="10%" data-field="lotteryResultNums" data-visible="true">中奖结果</th>
+							<th data-width="10%" data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

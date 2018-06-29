@@ -1,0 +1,253 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<title>瑞奇岛E钻配置</title>
+
+		<script id="diamondConfig" type="text/html">
+			<div class="row cl">
+				<label class="form-label col-2">已发放E钻数量：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{diamondSent}}" disabled="true"/>
+				</div>
+				<label class="form-label col-2">已发放幸运钻数量：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{diamondLuckySent}}" disabled="true"/>
+				</div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-2">瑞奇岛总人口基数：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{richPopulation}}" placeholder="请输入瑞奇岛总人口基数" id="richPopulation" maxlength="10" onkeyup="validityInteger(this);"/>
+				</div>
+				<label class="form-label col-2">创世居民人数上限：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{creationPeople}}" placeholder="请输入创世居民人数上限" id="creationPeople" maxlength="10" onkeyup="validityInteger(this);"/>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">每次发行E钻数量：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{dailyDiamond}}" placeholder="请输入每次发行E钻数量" id="dailyDiamond" maxlength="10" onkeyup="validityInteger(this);"/>
+				</div>
+				<label class="form-label col-2">每次领取E钻上限：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{onceDiamond}}" placeholder="请输入每次领取E钻上限" id="onceDiamond" maxlength="5" onkeyup="validityDecimal(this);"/>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">每次发行幸运钻数量：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{dailyDiamondLucky}}" placeholder="请输入每次发行幸运钻数量" id="dailyDiamondLucky" maxlength="10" onkeyup="validityInteger(this);"/>
+				</div>
+				<label class="form-label col-2">每次领取幸运钻上限：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{onceDiamondLucky}}" placeholder="请输入每次领取幸运钻上限" id="onceDiamondLucky" maxlength="5" onkeyup="validityDecimal(this);"/>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">获取幸运钻动力资格：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{gainDiamondLuckyPower}}" placeholder="请输入获取幸运钻动力资格" id="gainDiamondLuckyPower" maxlength="5" onkeyup="validityInteger(this);"/>
+				</div>
+				<label class="form-label col-2">抽取幸运用户概率(%)：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{gainDiamondLuckyScale}}" placeholder="请输入抽取幸运用户概率" id="gainDiamondLuckyScale" maxlength="5" onkeyup="validityDecimal(this);"/>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">挖矿初始动力值：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{initPower}}" placeholder="请输入挖矿初始动力值" id="initPower" maxlength="5" onkeyup="validityInteger(this);"/>
+				</div>
+				<label class="form-label col-2">E钻生长时间(小时)：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{diamondGrowTime}}" placeholder="请输入E钻生长时间" id="diamondGrowTime" maxlength="2" onkeyup="validityInteger(this);"/>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">初始发行时间：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text useTime" value="{{initReleaseTime}}" placeholder="请选择初始发行时间" id="initReleaseTime" readonly="true"/>
+				</div>
+				<label class="form-label col-2">发行间隔时间(小时)：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{releaseInterval}}" placeholder="请输入发行间隔时间" id="releaseInterval" maxlength="2" onkeyup="validityInteger(this);"/>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">E钻配置生效时间：</label>
+				<div class="formControls col-2">
+					<input type="text" readonly="true" value="{{diamondEffectiveTime | data_str}}" onfocus="WdatePicker({minDate:'%y-%M-%d',dateFmt:'yyyy-MM-dd HH'})" id="datemin" class="input-medium Wdate" style="width:270px;height: 28px;">
+				</div>
+				<label class="form-label col-2">是否开启瑞奇岛：</label>
+				<div class="formControls col-2">
+					<span class="select-box">
+					<select id="isOpen" class="select" size="1" datatype="*">
+						<option value="true" {{if isOpen == true}}selected="selected"{{/if}}>开启</option>
+						<option value="false" {{if isOpen == false}}selected="selected"{{/if}}>关闭</option>
+					</select>
+					</span>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">配置是否立即生效：</label>
+                <div class="formControls col-2">
+                	<span class="select-box">
+                      <select class="select" size="1" datatype="*" id="immediatelyCache">
+                      	<option value="0">否</option>
+                      	<option value="1">是</option>
+                      </select>
+                    </span>
+                </div>
+				<label class="form-label col-2">用户首页公告内容：</label>
+				<div class="formControls col-2">
+					<textarea class="textarea" id="notice" cols="20" rows="10"  placeholder="请输入用户首页公告内容" maxlength="100">{{notice}}</textarea>
+				</div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-2">商家首页公告内容：</label>
+                <div class="formControls col-2">
+                	<textarea class="textarea" id="merchantNotice" cols="20" rows="10"  placeholder="请输入商家首页公告内容" maxlength="100">{{merchantNotice}}</textarea>
+                </div>
+			</div>
+			<div class="col-10 col-offset-2">
+				<button name="diamond_config_save" onClick="save();" class="btn btn-primary radius permission_hide" type="button"><i class="Hui-iconfont">&#xe632;</i> 保存 </button>
+			</div>
+		</script>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, 
+				fileGroupConstants.WDATEPICKER,fileGroupConstants.COMMON, fileGroupConstants.TEMPLATE,
+				fileGroupConstants.VALIDATE, fileGroupConstants.STYLE_PER, fileGroupConstants.FILEUPLOAD,
+				fileGroupConstants.JEDATE
+			]);
+			
+			window.onload = function() {
+				ajaxRequest.ajax(request_url + "richConfig/getDiamondConfig","","GET",function(data){
+					document.getElementById('type-data').innerHTML= template('diamondConfig', data.model);
+					$.jeDate(".useTime",{
+						format:"hh:mm"
+					});
+					initContentLoad();
+				});
+				
+				template.helper("data_str",function(val){
+					return val.substr(0,13);
+				});
+			}
+			
+			function save() {
+				var richPopulation = $("#richPopulation").val();
+				var creationPeople = $("#creationPeople").val();
+				var dailyDiamond = $("#dailyDiamond").val();
+				var onceDiamond = $("#onceDiamond").val();
+				var dailyDiamondLucky = $("#dailyDiamondLucky").val();
+				var onceDiamondLucky = $("#onceDiamondLucky").val();
+				var gainDiamondLuckyPower = $("#gainDiamondLuckyPower").val();
+				var initPower = $("#initPower").val();
+				var gainDiamondLuckyScale = $("#gainDiamondLuckyScale").val();
+				var initReleaseTime = $("#initReleaseTime").val();
+				var releaseInterval = $("#releaseInterval").val();
+				var diamondGrowTime = $("#diamondGrowTime").val();
+				var datemin = $("#datemin").val();
+				var notice = $("#notice").val();
+				var isOpen = $("#isOpen").val();
+				var merchantNotice =$("#merchantNotice").val();
+				if(richPopulation.trim() == '' || creationPeople.trim() == '' || dailyDiamond.trim() == '' || onceDiamond.trim() == ''
+					|| dailyDiamondLucky.trim() == '' || onceDiamondLucky.trim() == '' || gainDiamondLuckyPower.trim() == ''
+					|| initPower.trim() == '' || gainDiamondLuckyScale.trim() == '' || initReleaseTime.trim() == ''
+					|| releaseInterval.trim() == '' || diamondGrowTime.trim() == '' || datemin.trim() == ''){
+					layer.msg("请填写完整的配置信息");
+					return;
+				}
+				
+				var param = {
+					"richPopulation":richPopulation,
+					"creationPeople":creationPeople,
+					"dailyDiamond":dailyDiamond,
+					"onceDiamond":onceDiamond,
+					"dailyDiamondLucky":dailyDiamondLucky,
+					"onceDiamondLucky":onceDiamondLucky,
+					"gainDiamondLuckyPower":gainDiamondLuckyPower,
+					"initPower":initPower,
+					"gainDiamondLuckyScale":gainDiamondLuckyScale,
+					"initReleaseTime":initReleaseTime,
+					"releaseInterval":releaseInterval,
+					"isOpen":isOpen,
+					"diamondGrowTime":diamondGrowTime,
+					"diamondEffectiveTime":datemin,
+					"notice":notice,
+					"immediatelyCache":$("#immediatelyCache").val(),
+					"merchantNotice":merchantNotice
+				};
+				
+				ajaxRequest.ajax(request_url + "richConfig/saveDiamondConfig",param,"POST",function(data){
+					var obj = eval(data);
+					if(obj.ret == '1000') {
+						layer.msg("设置成功！", {
+							icon: 6,
+							time: 1000
+						});
+					} else {
+						layer.msg("设置失败！", {
+							icon: 5,
+							time: 1000
+						});
+					};
+				});
+			}
+			
+			function validityDecimal(obj){
+				if(obj.value.length == 1 && obj.value == '.'){
+					obj.value = '0.';
+				}
+				if(obj.value.length == 2 && obj.value == '00'){
+					obj.value = '0.';
+				}
+				obj.value = obj.value.replace(/[^\d.]/g,"");  //清除“数字”和“.”以外的字符  
+			    obj.value = obj.value.replace(/\.{2,}/g,"."); //只保留第一个. 清除多余的       
+			    obj.value = obj.value.replace(".","$#$").replace(/\./g,"").replace("$#$",".");      
+			    obj.value = obj.value.replace(/^(\-)*(\d+)\.(\d\d).*$/,'$1$2.$3');//只能输入两个小数     
+			 	if(obj.value == '0.00'){
+			 		obj.value = '0.01';
+			 	}
+			}
+			
+			function validityInteger(obj){
+				if(obj.value.length == 1){
+					obj.value = obj.value.replace(/[^1-9]/g,'');
+				}else{
+					obj.value = obj.value.replace(/\D/g,'');
+				}
+			}
+			
+			
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				
+				<div id="type-data">
+				</div>
+		    </form>
+		</div>
+	</body>
+
+</html>

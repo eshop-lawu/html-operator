@@ -1,0 +1,209 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="renderer" content="webkit|ie-comp|ie-stand">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+	<script src="../../../js/loadExtendFile.js"></script>
+	<script src="../../../js/echarts.js"></script>
+	<title>活跃用户日统计</title>
+	<script type="text/javascript">
+		recursiveloadExtendFile(extendFiles, [
+			fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+		]);
+		var myChart =false;
+		window.onload = function() {
+			
+			$("#btnSubmit").click(function() {getUserActiveList();});
+			getUserActiveList();
+			initContentLoad();
+			
+			document.getElementById("beginTime").onfocus = function(){
+				if($("#flag").val() == '1'){
+					WdatePicker({dateFmt:'yyyy-MM-dd',maxDate:'#F{$dp.$D(\'endTime\')}'});
+				}else if($("#flag").val() == '2') {
+					WdatePicker({dateFmt:'yyyy-MM',maxDate:'#F{$dp.$D(\'endTime\')}'});
+				}
+			}
+			document.getElementById("endTime").onfocus = function(){
+				if($("#flag").val() == '1'){
+					WdatePicker({dateFmt:'yyyy-MM-dd',minDate:'#F{$dp.$D(\'beginTime\')}'});
+				}else if($("#flag").val() == '2') {
+					WdatePicker({dateFmt:'yyyy-MM',minDate:'#F{$dp.$D(\'beginTime\')}'});
+				}
+			}
+			$("#day").addClass("active");
+			$("#beginTime").val(new Date().Format("yyyy-MM")+'-01');
+			$("#endTime").val(new Date().Format("yyyy-MM-dd"));
+		}
+		
+
+		function getUserActiveList(){
+			var flag = $("#flag").val();
+			var beginTime = $("#beginTime").val();
+			var endTime = $("#endTime").val();
+			var url = "";
+			if(flag == "1"){
+				url = request_url + 'userActive/getUserActiveListDaily?beginTime='+beginTime+'&endTime='+endTime;
+			}else{
+				url = request_url + 'userActive/getUserActiveListMonth?beginTime='+beginTime+'&endTime='+endTime;
+			}
+		
+			$.ajax({
+				url: url,
+				type: "GET",
+				success: function(data) {
+					var obj = eval(data);
+					if(obj.ret == '1000') {
+						showUserActiveList(obj.model);
+					} else {
+						layer.msg('获取数据失败！', {
+							icon: 5,
+							time: 1000
+						});
+					};
+				},
+				error: function(data) {
+					layer.msg('获取数据异常！', {
+						icon: 5,
+						time: 1000
+					});
+				}
+			});
+		}
+		
+		function showUserActiveList(showData){
+			if(myChart){
+				myChart.dispose();
+			}
+			// 基于准备好的dom，初始化echarts实例
+			 myChart = echarts.init(document.getElementById('main'));
+			var xAxisData = [];
+			var seriesMemData = [];
+			var seriesMerData = [];
+
+			for(var i=0;i<showData.length;i++){
+				xAxisData.push(showData[i].gmtReport);
+				seriesMemData.push(showData[i].memberCount);
+				seriesMerData.push(showData[i].merchantCount);
+			}
+			
+			
+	        // 指定图表的配置项和数据
+	        var option = {
+			    title: {
+			        //text: '每日活跃用户记录总数'
+			    },
+			    tooltip: {
+			        trigger: 'axis'
+			    },
+			    legend: {
+			        data:['会员','商家']
+			    },
+			    grid: {
+			        left: '3%',
+			        right: '4%',
+			        bottom: '3%',
+			        containLabel: true
+			    },
+			    toolbox: {
+			        show: true,
+			        feature: {
+			            dataZoom: {
+			                yAxisIndex: 'none'
+			            },
+			            dataView: {readOnly: true},
+			            magicType: {type: ['line', 'bar']},
+			            restore: {},
+			            saveAsImage: {}
+			        }
+			    },
+			    xAxis: {
+					type: 'category',
+			        boundaryGap: false,
+			        data: xAxisData,
+			        axisLine : {    // 轴线
+		                show: true,
+		                onZero: true,
+		                lineStyle: {
+		                    color: 'black',
+		                    type: 'solid',
+		                    width: 2
+		                }
+		           }
+				},
+			    yAxis: {
+			        type: 'value',
+			         axisLabel: {
+			            formatter: '{value} 人'
+			        },
+			         axisLine : {    // 轴线
+		                show: true,
+		                onZero: true,
+		                lineStyle: {
+		                    color: 'green',
+		                    type: 'solid',
+		                    width: 2
+		                }
+		           }
+			    },
+			    series: [
+			        {
+			            name:'会员',
+			            type:'line',
+			            data:seriesMemData
+			        },
+			        {
+			            name:'商家',
+			            type:'line',
+			            data:seriesMerData
+			        }
+			    ]
+			};
+			
+	        myChart.setOption(option);
+		}
+		
+		function doDay(){
+			$("#flag").val("1");
+			$("#day").addClass("active");
+			$("#month").removeClass("active");
+			$("#beginTime").val(new Date().Format("yyyy-MM")+'-01');
+			$("#endTime").val(new Date().Format("yyyy-MM-dd"));
+		}
+		function doMonth(){
+			$("#flag").val("2");
+			$("#day").removeClass("active");
+			$("#month").addClass("active");
+			$("#beginTime").val(new Date().Format("yyyy")+'-01');
+			$("#endTime").val(new Date().Format("yyyy-MM"));
+			}
+		
+	</script>
+</head>
+<body>
+	<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 统计分析 <span class="c-gray en">&gt;</span> 活跃用户统计
+		<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+	</nav>
+	<div class="pd-20">
+		<div class="text-c">
+			
+			<div class="row cl">
+				<div class="btn-group btn-group-justified" role="group" aria-label="...">
+				  <button type="button" id="day" onclick="doDay()" class="btn btn-default">日统计</button>
+				  <button type="button" id="month" onclick="doMonth()" class="btn btn-default">月统计</button>
+				</div>
+				<input type="text" id="beginTime" name="beginDate" class="input-medium Wdate" style="width:170px;margin-top: 14px;">-
+				<input type="text" id="endTime" name="endDate" class="input-medium Wdate" style="width:170px;margin-top: 14px;">
+				<input type="hidden" id="flag" value="1">
+				&nbsp;&nbsp;&nbsp;
+				<button class="btn btn-success radius" id="btnSubmit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+			</div>
+			
+		</div>
+		
+		<div class="mt-20" id="main" style="width: 800px;height:600px;margin: auto;"></div>
+	</div>
+</body>
+</html>

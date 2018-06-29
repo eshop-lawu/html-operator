@@ -1,0 +1,236 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../../js/loadExtendFile.js"></script>
+		<script src="../../../js/echarts.js"></script>
+		<title>提现统计</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON, fileGroupConstants.STYLE_PER
+			]);
+			var myChart;
+			window.onload = function() {
+				var h=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight;
+				var w=window.innerWidth||document.documentElement.clientWidth||document.body.clientWidth;
+				document.getElementById("main").style.height=h+"px";
+				document.getElementById("main").style.weight=w+"px";
+			
+				myChart = echarts.init(document.getElementById('main'));
+				$("#btnSubmit").click(function() {
+					var bdate = $("#bdate").val();
+					var edate = $("#edate").val();
+					if(bdate == "" || edate == ""){
+						layer.msg('请选择完整的时间！', {
+							icon: 5,
+							time: 1000
+						});
+						return;
+					}
+					getReport();
+				});
+				getReport();
+				
+				document.getElementById("bdate").onfocus = function(){
+					if($("#flag").val() == '1'){
+						WdatePicker({dateFmt:'yyyy-MM-dd',maxDate:'#F{$dp.$D(\'edate\')}'});
+					}else if($("#flag").val() == '2') {
+						WdatePicker({dateFmt:'yyyy-MM',maxDate:'#F{$dp.$D(\'edate\')}'});
+					}
+				}
+				document.getElementById("edate").onfocus = function(){
+					if($("#flag").val() == '1'){
+						WdatePicker({dateFmt:'yyyy-MM-dd',minDate:'#F{$dp.$D(\'bdate\')}'});
+					}else if($("#flag").val() == '2') {
+						WdatePicker({dateFmt:'yyyy-MM',minDate:'#F{$dp.$D(\'bdate\')}'});
+					}
+				}
+				$("#day").addClass("active");
+			}
+			function doDay(){
+				$("#flag").val("1");
+				$("#day").addClass("active");
+				$("#month").removeClass("active");
+				$("#bdate").val("");
+				$("#edate").val("");
+			}
+			function doMonth(){
+				$("#flag").val("2");
+				$("#day").removeClass("active");
+				$("#month").addClass("active");
+				$("#bdate").val("");
+				$("#edate").val("");
+			}
+			
+			function getReport() {
+				myChart.showLoading();
+				var bdate = $("#bdate").val();
+				var edate = $("#edate").val();
+				$.ajax({
+					url: request_url + 'reportWithdrawCash/selectReport?bdate='+bdate+'&edate='+edate,
+					type: "GET",
+					success: function(data) {
+						var obj = eval(data);
+						if(obj.ret == '1000') {
+							myChart.hideLoading();
+							showReport(obj.model);
+						} else {
+							layer.msg('获取数据失败！', {
+								icon: 5,
+								time: 1000
+							});
+						};
+					},
+					error: function(data) {
+						myChart.hideLoading();
+						layer.msg('获取数据异常！', {
+							icon: 5,
+							time: 1000
+						});
+					}
+				});
+			}
+
+			function showReport(showData) {
+				var xAxisData = showData.xAxisData;
+				var seriesMemData = showData.yAxisMemberData;
+				var seriesMerData = showData.yAxisMerchantData;
+				$("#bdate").val(showData.bdate);
+				$("#edate").val(showData.edate);
+				
+				// 基于准备好的dom，初始化echarts实例
+				
+				// 指定图表的配置项和数据
+				var option = {
+					title: {
+						text: ''
+					},
+					tooltip: {
+						trigger: 'axis'
+					},
+					legend: {
+						data: ['商家提现', '用户提现']
+					},
+				    dataZoom: [
+				        {
+				            show: true,
+				            realtime: true,
+				            handleSize: 20
+				        }
+				    ],
+					toolbox: {
+						show: true,
+						feature: {
+							dataZoom: {
+								yAxisIndex: 'none'
+							},
+							dataView: {
+								show: true,
+								readOnly: false
+							},
+							magicType: {
+								show: true,
+								type: ['line', 'bar']
+							},
+							restore: {
+								show: true
+							},
+							saveAsImage: {
+								show: true
+							}
+						}
+					},
+					xAxis: {
+						type: 'category',
+						boundaryGap: false,
+						data: xAxisData,
+						axisLabel: {
+							formatter: '{value}'
+						}
+					},
+					yAxis: {
+						type: 'value',
+						axisLabel: {
+							formatter: '{value}元'
+						}
+					},
+					series: [{
+							name: '商家提现',
+							type: 'line',
+							itemStyle: {
+								normal: {
+									lineStyle: {
+										color: 'red'
+									}
+								}
+							},
+							data: seriesMemData,
+							markPoint: {
+								data: [{
+										type: 'max',
+										name: '最大值'
+									},
+									{
+										type: 'min',
+										name: '最小值'
+									}
+								]
+							}
+						},
+						{
+							name: '用户提现',
+							type: 'line',
+							itemStyle: {
+								normal: {
+									lineStyle: {
+										color: 'yellow'
+									}
+								}
+							},
+							data: seriesMerData,
+							markPoint: {
+								data: [{
+										type: 'max',
+										name: '最大值'
+									},
+									{
+										type: 'min',
+										name: '最小值'
+									}
+								]
+							}
+						}
+					]
+				};
+				myChart.setOption(option);
+			}
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 统计分析 <span class="c-gray en">&gt;</span> 提现统计
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+					<div class="row cl">
+						<div class="btn-group btn-group-justified" role="group" aria-label="...">
+						  <button type="button" id="day" onclick="doDay()" class="btn btn-default">日统计</button>
+						  <button type="button" id="month" onclick="doMonth()" class="btn btn-default">月统计</button>
+						</div>
+						<input type="text" id="bdate" name="beginDate" class="input-medium Wdate" style="width:170px;margin-top: 14px;">-
+						<input type="text" id="edate" name="endDate" class="input-medium Wdate" style="width:170px;margin-top: 14px;">
+						<input type="hidden" id="flag" value="1">
+						&nbsp;&nbsp;&nbsp;
+						<button class="btn btn-success radius" id="btnSubmit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+					</div>
+			</div>
+			<div class="mt-20" id="main"></div>
+		</div>
+	</body>
+
+</html>

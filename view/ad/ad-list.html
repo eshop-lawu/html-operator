@@ -1,0 +1,193 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>广告审核</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				$('#contentTable').bootstrapTable({
+					url: request_url + "ad/listAd",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					if (item.name == "typeEnum" && item.value == "") {
+						return true;
+					}
+					if (item.name == "putWayEnum" && item.value == "") {
+						return true;
+					}
+					if (item.name == "statusEnum" && item.value == "") {
+						return true;
+					}
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				return "<a style=\"text-decoration:none;font-size:20px;\" name='adAudit_detail' class='ml-5 permission_hide' href='javascript:;' title = \"查看\" onclick='detail(\"" + row.id + "\")'><i class=\"Hui-iconfont\">&#xe695;</i></a>";
+			}
+			
+			/**查看**/
+			function detail(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "广告详情",
+					content: "ad-detail.html?id=" + id
+				});
+				layer.full(index);
+			}
+			
+			function type(value, row, index) {
+				if(row.typeEnum == 'AD_TYPE_FLAT'){
+					return "平面";
+				}
+				if(row.typeEnum == 'AD_TYPE_VIDEO'){
+					return "视频";
+				}
+				if(row.typeEnum == 'AD_TYPE_PRAISE'){
+					return "E咻";
+				}
+				if(row.typeEnum == 'AD_TYPE_PACKET'){
+					return "红包";
+				}
+			}
+			
+			function putWay(value, row, index) {
+				if(row.putWayEnum == 'PUT_WAY_AREAS'){
+					return "区域";
+				}
+				if(row.putWayEnum == 'PUT_WAY_FENS'){
+					return "粉丝";
+				}
+				if(row.putWayEnum == 'PUT_WAY_RADAR'){
+					return "雷达";
+				}
+				if(row.putWayEnum == 'PUT_WAY_COMMON'){
+					return "普通";
+				}
+				if(row.putWayEnum == 'PUT_WAY_LUCK'){
+					return "手气";
+				}
+			}
+			
+			function status(value, row, index) {
+				if(row.statusEnum == 'AD_STATUS_ADD'){
+					return "上架";
+				}
+				if(row.statusEnum == 'AD_STATUS_PUTING'){
+					return "投放中";
+				}
+				if(row.statusEnum == 'AD_STATUS_OUT'){
+					return "下架";
+				}
+				if(row.statusEnum == 'AD_STATUS_DELETE'){
+					return "删除";
+				}
+				if(row.statusEnum == 'AD_STATUS_PUTED'){
+					return "投放结束";
+				}
+				if(row.statusEnum == 'AD_STATUS_AUDIT'){
+					return "审核中";
+				}
+				if(row.statusEnum == 'AD_STATUS_AUDIT_FAIL'){
+					return "审核不通过";
+				}
+			}
+			
+			function mediaUrl(value, row, index) {
+				if(row.typeEnum == 'AD_TYPE_VIDEO'){
+					return '<video class="radius" src="' + request_url_video + row.mediaUrl + '" onerror="this.src=\'' + rootPath + '/images/user.png\';" style="height:30px;">';
+				}else{
+					return '<img class="radius" src="' + request_url_image + row.mediaUrl + '" onerror="this.src=\'' + rootPath + '/images/user.png\';" style="height:30px;">';
+				}
+			}
+			
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 审核管理 <span class="c-gray en">&gt;</span> 广告审核
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+					<input type="text" style="width:250px" placeholder="广告标题" name="title">
+					<select name="typeEnum">
+						<option value="">广告类型</option>
+						<option value="AD_TYPE_FLAT">平面</option>
+						<option value="AD_TYPE_VIDEO">视频</option>
+						<option value="AD_TYPE_PRAISE">E咻</option>
+						<option value="AD_TYPE_PACKET">红包</option>
+					</select>
+					<select name="putWayEnum">
+						<option value="">投放方式</option>
+						<option value="PUT_WAY_AREAS">区域</option>
+						<option value="PUT_WAY_FENS">粉丝</option>
+						<option value="PUT_WAY_RADAR">雷达</option>
+						<option value="PUT_WAY_COMMON">普通</option>
+						<option value="PUT_WAY_LUCK">手气</option>
+					</select>
+					<select name="statusEnum">
+						<option value="">状态</option>
+						<option value="AD_STATUS_ADD">上架</option>
+						<option value="AD_STATUS_PUTING">投放中</option>
+						<option value="AD_STATUS_OUT">下架</option>
+						<option value="AD_STATUS_DELETE">删除</option>
+						<option value="AD_STATUS_PUTED">投放结束</option>
+						<option value="AD_STATUS_AUDIT">审核中</option>
+						<option value="AD_STATUS_AUDIT_FAIL">审核不通过</option>
+					</select>
+				</form>
+				<button class="btn btn-success radius" id="btnSubmit" type=""><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+			</div>
+			<!--<div class="cl pd-5 bg-1 bk-gray mt-20"> <span class="l">
+				<a href="javascript:;" onclick="datadel('del')" class="btn btn-danger radius"><i class="Hui-iconfont">&#xe6e2;</i> 批量删除</a> 
+				<a href="javascript:;" onclick="datadel('down')" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe600;</i> 批量下架</a></span> 
+			</div>-->
+			<div class="mt-20">
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<!--<th data-checkbox="true"></th>-->
+							<th data-field="id" data-visible="false">id</th>
+							<!--<th data-formatter="mediaUrl" data-visible="true">广告附件</th>-->
+							<th data-width="15%" data-field="title" data-visible="true">标题</th>
+							<th data-width="15%" data-field="content" data-visible="true">内容</th>
+							<th data-width="10%" data-field="account" data-visible="true">商家账号</th>
+							<th data-width="15%" data-field="name" data-visible="true">门店名称</th>
+							<th data-width="5%" data-formatter="type" data-visible="true" >类型</th>
+							<th data-width="5%" data-formatter="putWay" data-visible="true" >投放方式</th>
+							<th data-width="5%" data-formatter="status" data-visible="true" >状态</th>
+							<th data-width="12%" data-field="remark" data-visible="true">备注</th>
+							<th data-width="5%" data-field="auditorName" data-visible="true">审核人员</th>
+							<th data-width="8%" data-field="gmtCreate" data-visible="true" data-sortable="true">创建时间</th>
+							<th data-width="5%" data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>平台总销量统计</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.LAYER, fileGroupConstants.COMMON, fileGroupConstants.STYLE_PER,
+				fileGroupConstants.ECHARTS
+			]);
+
+			var report_type = {
+				/**
+				 * 按天
+				 */
+				DAILY: "DAILY",
+
+				/**
+				 * 按月
+				 */
+				MONTH: "MONTH"
+			};
+
+			// 基于准备好的dom，初始化echarts实例
+			var option = {
+				tooltip: {
+					trigger: 'axis',
+					axisPointer: {
+						type: 'cross',
+						crossStyle: {
+							color: '#999'
+						}
+					}
+				},
+				dataZoom: [{
+					show: true,
+					realtime: true,
+					handleSize: 20
+				}],
+				toolbox: {
+					feature: {
+						dataZoom: { yAxisIndex: 'none' },
+						dataView: { show: true, readOnly: false },
+						magicType: { show: true, type: ['line', 'bar'] },
+						restore: { show: true },
+						saveAsImage: { show: true }
+					}
+				},
+				legend: {
+					data: ['买单金额', '订单金额']
+				},
+				xAxis: [{
+					type: 'category',
+					data: [],
+					axisPointer: {
+						type: 'shadow'
+					}
+				}],
+				yAxis: [{
+					type: 'value',
+					name: '金额',
+					axisLabel: {
+						formatter: '{value} 元'
+					}
+				}],
+				series: [{
+						name: '买单金额',
+						type: 'bar',
+						markPoint: {
+							data: [{
+									type: 'max',
+									name: '最大值'
+								},
+								{
+									type: 'min',
+									name: '最小值'
+								}
+							]
+						},
+						data: []
+					},
+					{
+						name: '订单金额',
+						type: 'bar',
+						markPoint: {
+							data: [{
+									type: 'max',
+									name: '最大值'
+								},
+								{
+									type: 'min',
+									name: '最小值'
+								}
+							]
+						},
+						data: []
+					}
+				]
+			};
+
+			window.onload = function() {
+				myChart = echarts.init(document.getElementById('main'));
+
+				$("#btnSubmit").click(function(e) {
+					e.preventDefault();
+					var start = $("#start").val();
+					var end = $("#end").val();
+					if(start == "" || end == "") {
+						layer.msg('请选择完整的时间！', {
+							icon: 5,
+							time: 1000
+						});
+						return;
+					}
+					getData();
+				});
+
+				$("#type").on("change", function() {
+					var dateFmt = "yyyy-MM-dd";
+					if(report_type.DAILY == this.value) {
+						dateFmt = "yyyy-MM-dd";
+					} else if(report_type.MONTH == this.value) {
+						dateFmt = "yyyy-MM-01";
+					}
+					$("#start").unbind().on("focus", function() {
+						WdatePicker({ dateFmt: dateFmt, startDate:'%y-%M-01', maxDate: '#F{$dp.$D(\'end\')}',readOnly:'true'});
+					});
+					$("#end").unbind().on("focus", function() {
+						WdatePicker({ dateFmt: dateFmt, startDate:'%y-%M-%d', minDate: '#F{$dp.$D(\'start\')}', maxDate: '%y-%M-%d',readOnly:'true'});
+					});
+				});
+				$("#type").trigger("change");
+			}
+
+			function getData() {
+				myChart.showLoading();
+				$.ajaxExtend({
+					url: request_url_report_sales_list,
+					data: $("#searchForm").serialize(),
+					success: function(obj) {
+						var x = [];
+						var y1 = [];
+						var y2 = [];
+						obj.model.data.forEach(function(value) {
+							x.push(value.x);
+							y1.push(value.y.payOrderAmount);
+							y2.push(value.y.shoppingOrderAmount);
+						});
+						option.xAxis[0].data = x;
+						option.series[0].data = y1;
+						option.series[1].data = y2;
+						myChart.hideLoading();
+						myChart.setOption(option);
+					}
+				});
+			}
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 统计分析 <span class="c-gray en">&gt;</span> 平台总销量统计
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+				<div class="row">
+					<form id="searchForm" class="form-horizontal" role="form">
+						<div class="row cl">
+							<div class="form-group">
+								<label class="control-label">统计类型:</label>
+								<select id="type" name="type" class="form-control">
+									<option value="DAILY">日统计</option>
+									<option value="MONTH">月统计</option>
+								</select>
+							</div>
+						</div>
+
+						<div class="row mt-20">
+							<div class="form-group">
+								<label class="control-label">时间范围:</label>
+								<input type="text" id="start" name="start" class="form-control Wdate" placeholder="开始时间" />&nbsp;&nbsp;-&nbsp;&nbsp;<input type="text" id="end" name="end" class="form-control Wdate" placeholder="结束时间" />
+							</div>
+						</div>
+						
+						<div class="row mt-20">
+							<button type="button" class="btn btn-success radius" id="btnSubmit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div class="mt-20" id="main" style="width:100%;height:800px;"></div>
+		</div>
+	</body>
+
+</html>

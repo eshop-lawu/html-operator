@@ -1,0 +1,333 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<title>修改抢购活动</title>
+		<script type="text/javascript" src="../../js/loadExtendFile.js"></script>
+		<script type="text/javascript">
+			// 加载资源文件
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.VALIDATE, fileGroupConstants.WDATEPICKER,fileGroupConstants.TEMPLATE, fileGroupConstants.COMMON
+			]);
+			
+			/* 会员等级枚举 */
+			var member_level_enum = {
+				"SILVER": { key: "SILVER", label: "白银会员" },
+				"GOLD": { key: "GOLD", label: "黄金会员" },
+				"PLATINUM": { key: "PLATINUM", label: "铂金会员" },
+				"MASONRY": { key: "MASONRY", label: "钻石会员" },
+				"CROWN": { key: "CROWN", label: "皇冠会员" },
+			};
+			
+			var activity_status_enum = {
+				"UNPUBLISHED": { key: "UNPUBLISHED", label: "未发布" },
+				"PUBLISHED": { key: "PUBLISHED", label: "发布中" },
+				"IN_REVIEW": { key: "IN_REVIEW", label: "审核中" },
+				"NOT_STARTED": { key: "NOT_STARTED", label: "未开始" },
+				"PROCESSING": { key: "PROCESSING", label: "进行中" },
+				"END": { key: "END", label: "已结束" },
+			};
+			
+			var params = getUrlVars();
+			var id = params["id"];
+			
+			function init(obj) {
+				template.helper("assembly_image_path",function(image_path){
+					var rtn = "";
+					if(typeof image_path == "undefined" || image_path == undefined || image_path == null) {
+						return rtn;
+					}
+					rtn = request_url_image + image_path;
+					return rtn;
+				});
+				
+				template.helper("member_level_str",function(val){
+					return member_level_enum[val].label;
+				});
+				
+				template.helper("activity_status_str",function(val){
+					return activity_status_enum[val].label;
+				});
+				
+				obj['member_level_enum'] = member_level_enum;
+				obj['activity_status_enum'] = activity_status_enum;
+				var html = template('template', obj);
+				$("#dataForm").html(html);
+				
+				$("#start-date").on("focus", function() {
+					var maxDate = $("#end-date").val();
+					var minDate = $("#attent-end-date").val();
+					var now = new Date();
+					if (maxDate != "") {
+						now = new Date(Date.parse(maxDate));
+					} 
+					if(minDate == ''){
+						layer.msg("请先设置报名结束时间");
+						return;
+					}
+					now.setHours(0);
+					now.setMinutes(0);
+					WdatePicker({ dateFmt: "yyyy-MM-dd HH:mm", minDate: minDate, maxDate: '#F{$dp.$D(\'end-date\', {H:-1})}', readOnly:'true'});
+				});
+				$("#end-date").on("focus", function() {
+					var minDate = $("#start-date").val();
+					if(minDate == ''){
+						layer.msg("请先设置开始时间");
+						return;
+					}
+					var maxDate = "";
+					if (minDate != "") {
+						var now = new Date(Date.parse(minDate));
+						now.setHours(23);
+						now.setMinutes(0);
+						maxDate = now.Format("yyyy-MM-dd hh:mm");
+					}
+					WdatePicker({ dateFmt: "yyyy-MM-dd HH:mm", minDate: '#F{$dp.$D(\'start-date\', {H:1}) || \'%y-%M-{%d+2} 00:00\'}', maxDate: maxDate, readOnly:'true'});
+				});
+				$("#upload-picture").change(function(){
+					$.ajaxfileUploadExtend({
+						uploadType: upload_Type_enum.IMG,
+						elementSelector: "#upload-picture",
+						success:function(data){
+							$("#picture").val(data.model.fileUrl);
+							$("#upload-image-picture").attr("src", request_url_image + data.model.fileUrl);
+							$("#upload-image-picture").show();
+						}
+					});
+				});
+				
+				$("#upload-home-picture").change(function(){
+					$.ajaxfileUploadExtend({
+						uploadType: upload_Type_enum.IMG,
+						elementSelector: "#upload-home-picture",
+						success:function(data){
+							$("#home-picture").val(data.model.fileUrl);
+							$("#upload-image-home-picture").attr("src", request_url_image + data.model.fileUrl);
+							$("#upload-image-home-picture").show();
+						}
+					});
+				});
+			}
+			
+			window.onload = function() {
+				/**获取html页面之间跳转的参数**/
+				if(!isNull(id)) {
+					$.ajaxExtend({
+						url: request_url_seckill_activity.replace("{id}", id),
+						type: "GET",
+						success: function(obj) {
+							init(obj);
+							$("#upload-image").show();
+						},
+					});
+				} else {
+					var obj = {};
+					obj.model = {};
+					init(obj);
+				}
+
+				jQuery.validator.addMethod("dateRangeTo", function(value, element, param) {
+					if (this.optional(element)) {
+						return true;
+					}
+					var start_date = Date.parse(value);
+					var end_date = Date.parse($(param).val());
+					if (isNaN(end_date)) {
+						return true;
+					}
+					return start_date < end_date ? true : false;   
+				}, "请输入合法的日期范围");
+				
+				$("#dataForm").validate({
+					rules: {
+						name: {
+							required: true,
+							maxlength:10
+						},
+						memberLevel: {
+							required: true
+						},
+						attentEndDate: {
+							date: true,
+							required: true
+						},
+						sellingPrice: {
+							min:0,
+							required: true
+						},
+						productValidCount: {
+							min:1,
+							required: true
+						},
+						startDate: {
+							date: true,
+							dateRangeTo: "#end-date",
+							required: true
+						},
+						endDate: {
+							date: true,
+							required: true
+						},
+						remark: {
+							required: true,
+							maxlength:500
+						},
+					},
+					messages: {
+						name: {
+							required: "请输入活动名称",
+							maxlength: $.validator.format("活动名称限制{0}个字")
+						},
+						memberLevel: {
+							required: "请选择会员等级"
+						},
+						attentEndDate: {
+							required: "请输入报名结束时间"
+						},
+						sellingPrice: {
+							min: "活动定价不能小于0",
+							required: "请输入活动定价"
+						},
+						productValidCount: {
+							min: "提交商品数量必须大于0",
+							required: "请输入提交商品数量"
+						},
+						startDate: {
+							required: "请输入开始时间"
+						},
+						endDate: {
+							required: "请输入结束时间"
+						},
+						remark: {
+							required: "请输入活动说明",
+							maxlength: $.validator.format("活动名称限制{0}个字")
+						},
+					},
+					submitHandler: function(form) {
+						if ($("#picture").val() == "") {
+							layer.msg('请上传活动宣传图片');
+							return;
+						}
+						if (!isNull(id)) {
+							$.ajaxExtend({
+								url: request_url_seckill_activity.replace("{id}", id),
+								type: "PUT",
+								data : $("#dataForm").serialize(),
+								success: function(obj) {
+									layer.msg('更新成功！', {icon:1, time:1000}, function() {
+										parent.refresh();
+										layer_extend_close();
+									});
+								}
+							});
+						} else {
+							$.ajaxExtend({
+								url: request_url_seckill_activity_save,
+								type: "POST",
+								data : $("#dataForm").serialize(),
+								success: function(obj) {
+									layer.msg('保存成功！', {icon:1, time:1000}, function() {
+										parent.refresh();
+										layer_extend_close();
+									});
+								}
+							});
+						}
+					}
+				});
+			}
+		</script>
+		<script id="template" type="text/html">
+			<input type="hidden" value="{{model.id}}" name="id" />
+			<div class="row cl">
+				<label class="form-label col-2"><span class="c-red">*</span>活动名称：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{model.name}}" placeholder="请输入活动名称" id="name" name="name" required="true" maxlength="10"/>
+				</div>
+				<label class="form-label col-2"><span class="c-red">*</span>活动状态：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{model.activityStatus ? activity_status_enum[model.activityStatus].label : '无'}}" readonly="true" />
+				</div>
+				<div class="formControls col-2"></div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-2"><span class="c-red">*</span>会员等级：</label>
+				<div class="formControls col-3">
+					<select name="memberLevel" class="select" required="true" style="height: 31px;">
+						{{each member_level_enum as member_level}}
+							<option value="{{member_level.key}}" {{if (model.memberLevel == member_level.key)}}selected="true"{{/if}}>{{member_level.label}}</option>
+						{{/each}}
+					</select>
+				</div>
+				<label class="form-label col-2"><span class="c-red">*</span>报名结束时间：</label>
+				<div class="formControls col-3">
+					<input type="text" readonly="true" class="input-text Wdate" value="{{model.attentEndDate}}" placeholder="请输入报名结束时间" name="attentEndDate" onfocus="WdatePicker({minDate:'%y-%M-%d',dateFmt:'yyyy-MM-dd HH:mm'})" id="attent-end-date" required="true"/>
+				</div>
+				<div class="formControls col-2"></div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-2"><span class="c-red">*</span>提交商品数量：</label>
+				<div class="formControls col-3">
+					<input type="number" class="input-text" value="{{model.productValidCount}}" placeholder="请输入商家可提交商品数量" name="productValidCount" min="0" required="true" style="width: 100%;"/>
+				</div>
+				<div class="formControls col-7"></div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-2"><span class="c-red">*</span>开始时间：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text Wdate" value="{{model.startDate}}" placeholder="请输入开始时间" name="startDate" id="start-date" required="true"/>
+				</div>
+				<label class="form-label col-2"><span class="c-red">*</span>结束时间：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text Wdate" value="{{model.endDate}}" placeholder="请输入结束时间" name="endDate" id="end-date" required="true"/>
+				</div>
+				<div class="formControls col-2"></div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-2"><span class="c-red">*</span>活动宣传图片：</label>
+				<div class="formControls col-3">
+					<img src="{{model.picture | assembly_image_path}}" alt="活动宣传图片" id="upload-image-picture" class="thumbnail" style="width: 400px;height: 400px;{{if !model.picture}}display: none;{{/if}}">
+				</div>
+				<div class="formControls col-1">
+					<label class="btn btn-primary radius" id="upload-label-picture" for="upload-picture" >&nbsp;&nbsp;上传&nbsp;&nbsp;</label>
+					<input type="file" id="upload-picture" class="input-text" style="display: none;"/>
+					<input type="hidden" value="{{model.picture}}" name="picture" id="picture"/>
+				</div>
+				<label class="form-label col-1"><span class="c-red">*</span>活动首页图片：</label>
+				<div class="formControls col-3">
+					<img src="{{model.homePicture | assembly_image_path}}" alt="活动宣传图片" id="upload-image-home-picture" class="thumbnail" style="width: 400px;height: 400px;{{if !model.picture}}display: none;{{/if}}">
+				</div>
+				<div class="formControls col-1">
+					<label class="btn btn-primary radius" id="upload-label-home-picture" for="upload-home-picture" >&nbsp;&nbsp;上传&nbsp;&nbsp;</label>
+					<input type="file" id="upload-home-picture" class="input-text" style="display: none;"/>
+					<input type="hidden" value="{{model.homePicture}}" name="homePicture" id="home-picture"/>
+				</div>
+				
+			</div>
+			<div class="row cl">
+				<label class="form-label col-2"><span class="c-red">*</span>活动说明：</label>
+				<div class="formControls col-3">
+					<textarea name="remark" cols="" rows="" class="textarea" placeholder="请输入..."  dragonfly="true" nullmsg="备注不能为空！" onKeyUp="textarealength(this,500)">{{model.remark}}</textarea>
+					<p class="textarea-numberbar"><em class="textarea-length">0</em>/500</p>
+				</div>
+			    <div class="formControls col-2"></div>
+			</div>
+			<div class="row cl">
+				<div class="col-9 col-offset-3">
+					<input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+				</div>
+			</div>
+		</script>
+	</head>
+	<body>
+		<div class="pd-20">
+			<form class="form form-horizontal" id="dataForm">
+			</form>
+		</div>
+		</div>
+	</body>
+</html>

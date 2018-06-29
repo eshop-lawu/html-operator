@@ -1,0 +1,259 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>商品类别</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				getFirstMenu();
+				$('#contentTable').bootstrapTable({
+					url: request_url + "productCategory/findOperatorAll",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				var html = "";
+				if( row.level =="1" && row.type == "PRODUCT_CATEGORY_HOT"){
+					html += "<a style=\"text-decoration:none;font-size:15px;\" name='' class='ml-5 ' href='javascript:;' title = '设置普通' onclick='editHot(\"" + row.id + "\",\"PRODUCT_CATEGORY_NORMAL\")'>设置普通</a>";
+				}else if(row.level =="1" && row.type == "PRODUCT_CATEGORY_NORMAL"){
+					html += "<a style='text-decoration:none;font-size:15px;' name='' class='ml-5 ' href='javascript:;' title = '设置热门' onclick='editHot(\"" + row.id + "\",\"PRODUCT_CATEGORY_HOT\")'>设置热门</a>";
+				}
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class='ml-5 ' href='javascript:;' title = '编辑' onclick='editCategory(\"" + row.id + "\")'>编辑</a>";
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class=''  onclick='addProductBrand(\"" + row.id + "\",\""+ row.name +"\")'>添加品牌</a>";
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class='ml-5 ' href='javascript:;' title = '品牌列表' onclick='brandList(\"" + row.id + "\")'>品牌列表</a>";
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class=''  onclick='addProductSpec(\"" + row.id + "\",\""+ row.name +"\")'>添加规格</a>";
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class='ml-5 ' href='javascript:;' title = '规格列表' onclick='specList(\"" + row.id + "\")'>规格列表</a>";
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class=''  onclick='deleteRow(\"" + row.id + "\",\"1\")'>删除</a>";
+				return html;
+			}
+			
+			
+	
+			/**删除**/
+			function deleteRow(ids, type) {
+				var delurl = request_url +"productCategory/delProductCategory?ids="+ids;
+				var tips_success = "删除成功！";
+				var tips_fail = "删除失败";
+				var confitmTips = "是否确认删除？";			
+				/*var jsonData = ;*/
+				layer.confirm(confitmTips, {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						ajaxRequest.ajax(delurl,"","PUT",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert(tips_success, {
+										closeBtn: 0
+									}, function() {
+										location.replace(location.href);
+									});
+								} else {
+									layer.msg(tips_fail, {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					},
+					function() {
+						//取消
+					});
+			}
+		
+		
+		function editCategory(id){
+			layer_show("编辑", "editProductCategory.html?id=" + id, "", "470");
+		}
+		function addProductCategory(){
+			layer_show("添加分类", "addProductCategory.html", "", "470");
+		}
+		
+		function addProductBrand(id,name){
+			layer_show("添加品牌", "addProductBrand.html?id=" + id+"&name="+encodeURI(name), "", "470");
+		}
+		
+		function addProductSpec(id,name){
+			layer_show("添加规格", "addProductSpec.html?id=" + id+"&name="+encodeURI(name), "", "470");
+		}
+		
+		
+		function brandList(id){
+			var index = layer.open({
+				type: 2,
+				title: "规格列表",
+				content: "productBrand.html?id=" + id
+			});
+			layer.full(index);
+		}
+		
+		function specList(id){
+			var index = layer.open({
+				type: 2,
+				title: "规格列表",
+				content: "productSpec.html?id=" + id
+			});
+			layer.full(index);
+		}
+		
+		function featureImage(value, row, index) {
+			if(row.imageUrl != null && row.imageUrl !=""){
+				return '<img class="radius" src="' + request_url_image + row.imageUrl + '"  style="height:30px;">';
+			}else{
+				return'';
+			}
+		}
+		
+		function isVirtual(value, row){
+			if(row.isVirtual || row.isVirtual == true){
+				return "是";
+			}else{
+				return "否";
+			}
+		}
+		
+		function isHot(value, row, index) {
+			if(row.type == "PRODUCT_CATEGORY_HOT"){
+				return "<span style='color:red'>是</span>";
+			}else{
+				return "否";
+			}
+			
+		}
+		
+		
+		function getFirstMenu(){
+			ajaxRequest.ajax(request_url + "productCategory/find/0" ,"","GET",function(data){
+				var obj = eval(data);
+					if(obj.ret == '1000') {
+						var html = "";
+						var list = obj.model;
+						for(var i=0;i<list.length;i++){
+							html +='<option value="'+list[i].id+'">'+list[i].name+'</option>';
+						}
+						$("#parentIdList").append(html);
+					} else {
+						layer.msg('加载失败！', {
+							icon: 5,
+							time: 1000
+						});
+					};
+			});
+			}
+		
+		function editHot(id,isHot){
+				var confirmStr='是否确认设置热门？';
+				if(isHot == "PRODUCT_CATEGORY_NORMAL"){
+					confirmStr='是否确认取消热门？';
+				}
+				layer.confirm(confirmStr, {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						$.ajax({
+							url: request_url +"productCategory/editHot/"+id,
+							type: 'PUT',
+							data: {"type":isHot},
+							success: function(data) {
+								var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert('操作成功！', {
+										closeBtn: 0
+									}, function() {
+										location.replace(location.href);
+									});
+								} else {
+									layer.msg('操作失败！', {
+										icon: 5,
+										time: 1000
+									});
+								};
+							},
+							error: function(data) {
+								layer.msg('操作失败！', {
+									icon: 5,
+									time: 1000
+								});
+							}
+						});
+					},
+					function() {
+						//取消
+					});
+			}
+		
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 商品管理 <span class="c-gray en">&gt;</span> 商品分类管理
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<form id="searchForm">
+					<input type="text" style="width:250px" placeholder="商品类型名称" name="name">
+					&nbsp;&nbsp;层级：<select name="level">
+						<option value="">请选择</option>
+						<option value="1">一级</option>
+						<option value="2">二级</option>
+					</select>
+					&nbsp;&nbsp;一级分类：<select name="parentId" id="parentIdList">
+						<option value="">请选择</option>
+					
+					</select>
+				</form>
+			<div style="color: red;">*设置一级分类前4个热门</div>
+			<div style="color: red;">*添加分类/品牌最后一个增加其他类别，排序字段设置最大</div>
+			<div class="text-c">
+				<button class="btn btn-success radius" id="btnSubmit"><i class="Hui-iconfont">&#xe665;</i>查询</button>
+			</div>
+			<div class="cl pd-5 bg-1 bk-gray mt-20">
+				<span class="l">
+					<a href="javascript:;" name="product_category_add"  onclick="addProductCategory()" class="btn btn-primary radius">添加分类</a>
+				</span>
+			</div>
+			<div class="mt-20">
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="get" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-field="id" data-visible="false">id</th>
+							<th  data-field="name" data-visible="true">分类名称</th>
+							<th  data-formatter="featureImage" data-visible="true">分类图标</th>
+							<th  data-field="level" data-visible="true">层级</th>
+							<th  data-field="parentName" data-visible="true">父类名称</th>
+							<th  data-formatter="isHot" data-visible="true">是否热门</th>
+							<th  data-field="ordinal" data-visible="true">排序</th>
+							<th  data-formatter="isVirtual" data-visible="true">是否虚拟商品</th>
+							<th  data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

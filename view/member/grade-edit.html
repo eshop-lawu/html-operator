@@ -1,0 +1,185 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>添加或修改会员等级</title>
+	</head>
+
+	<script type="text/javascript">
+		recursiveloadExtendFile(extendFiles, [
+			fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER,
+			fileGroupConstants.COMMON, fileGroupConstants.DISTRICT, fileGroupConstants.VALIDATE,
+			fileGroupConstants.TEMPLATE, fileGroupConstants.JQUERY_CHECK, fileGroupConstants.FILEUPLOAD
+		]);
+		window.onload = function() {
+			var id = getUrlVars()["id"];
+			$("#dataForm input[name='id']").val(id);
+			if(id != "0") {
+				ajaxRequest.ajax(request_url + "grade/" + id, "", "GET", function(data) {
+					var obj = eval(data);
+					if(obj.ret == '1000') {
+						$("#dataForm input[name='gradeName']").val(obj.model.gradeName);
+						$("#dataForm input[name='gradeWeight']").val(obj.model.gradeWeight);
+						$("#dataForm input[name='minGrowthValue']").val(obj.model.minGrowthValue);
+						$("#dataForm input[name='lotteryActivityPoint']").val(obj.model.lotteryActivityPoint);
+						$("#dataForm input[name='nextFreeLotteryCount']").val(obj.model.nextFreeLotteryCount);
+					} else {
+						layer.msg('加载失败！', {
+							icon: 5,
+							time: 1000
+						});
+					};
+				});
+			} else {
+				$("#tips").show();
+			}
+
+			$("#btnSubmit").click(function() {
+				var url = "grade/save";
+				if(id != "0") {
+					url = "grade/updateById/" + id;
+				}
+				$("#dataForm").validate({
+					rules: {
+						gradeName: {
+							required: true,
+							maxlength: 50
+						},
+						gradeWeight: {
+							required: true,
+							number: true,
+							min: 1
+						},
+						minGrowthValue: {
+							required: true,
+							number: true,
+							min: 0
+						},
+						lotteryActivityPoint: {
+							required: true,
+							number: true,
+							min: 1
+						},
+						nextFreeLotteryCount: {
+							required: true,
+							number: true,
+							min: 0
+						},
+					},
+					messages: {
+						gradeName: {
+							required: "请输入等级名称",
+							maxlength: $.validator.format("请输入长度不超过{0}个字符")
+						},
+						gradeWeight: {
+							required: "请输入等级权值",
+							number: "请输入合法的数字",
+							min: $.validator.format("请输入不小于{0}的数字")
+						},
+						minGrowthValue: {
+							required: "请输入最小成长值",
+							number: "请输入合法的数字",
+							min: $.validator.format("请输入不小于{0}的数字")
+						},
+						lotteryActivityPoint: {
+							required: "请输入抽奖活动兑换积分",
+							number: "请输入合法的数字",
+							min: $.validator.format("请输入不小于{0}的数字")
+						},
+						nextFreeLotteryCount: {
+							required: "请输入调整后抽奖次数",
+							number: "请输入合法的数字",
+							min: $.validator.format("请输入不小于{0}的数字")
+						},
+					}
+				});
+
+				if(!$("#dataForm").valid()) {
+					return;
+				}
+
+				$("#dataForm").ajaxSubmit({
+					url: request_url + url,
+					type: "POST",
+					success: function(data) {
+						var obj = eval(data);
+						if(obj.ret == '1000') {
+							var index = parent.layer.getFrameIndex(window.name);
+							parent.location.reload();
+							parent.layer.close(index);
+						} else {
+							layer.msg(obj.msg, {
+								icon: 5,
+								time: 3000
+							});
+						}
+					}
+				});
+			});
+		}
+	</script>
+
+	<body>
+		<div class="pd-20 ">
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>等级名称：</label>
+					<div class="formControls col-5">
+						<input type="text" class="input-text" value="" placeholder="" id="gradeName" name="gradeName" nullmsg="等级名称不能为空">
+					</div>
+					<label id="gradeNameError" style="color: red;"></label>
+					<div class="col-4"> </div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>等级权值：</label>
+					<div class="formControls col-5">
+						<input type="text" class="input-text" value="" placeholder="" id="gradeWeight" name="gradeWeight" nullmsg="等级权值不能为空">
+					</div>
+					<label id="gradeWeightError" style="color: red;"></label>
+					<div class="col-4"> </div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-3">最小成长值：</label>
+					<div class="formControls col-5">
+						<input type="text" class="input-text" value="" placeholder="" id="minGrowthValue" name="minGrowthValue" nullmsg="最小成长值不能为空">
+					</div>
+					<label id="minGrowthValueError" style="color: red;"></label>
+					<div class="col-4"> </div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-3">抽奖活动兑换积分：</label>
+					<div class="formControls col-5">
+						<input type="text" class="input-text" value="" placeholder="" id="lotteryActivityPoint" name="lotteryActivityPoint" nullmsg="抽奖活动兑换积分不能为空">
+					</div>
+					<label id="lotteryActivityPointError" style="color: red;"></label>
+					<div class="col-4"> </div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>调整后抽奖次数：</label>
+					<div class="formControls col-5">
+						<input type="text" class="input-text" value="" placeholder="" id="nextFreeLotteryCount" name="nextFreeLotteryCount" nullmsg="调整后抽奖次数不能为空">
+					</div>
+					<label id="nextFreeLotteryCountError" style="color: red;"></label>
+					<div class="col-4"> </div>
+				</div>
+				<div class="row cl">
+					<div class="col-9 col-offset-3">
+						<input type="hidden" name="id" value="0">
+						<input id="btnSubmit" class="btn btn-primary radius" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+					</div>
+				</div>
+				<div class="cl pd-5 bg-1 bk-gray mt-20 " id="tips" style="display: none;">
+					<span class="l " style="color:red;">温馨提示：需要添加或删除会员等级请联系后台运维工作人员</span>
+				</div>
+			</form>
+		</div>
+		</div>
+	</body>
+
+</html>

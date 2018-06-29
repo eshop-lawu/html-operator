@@ -1,0 +1,296 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<title>奖品编辑</title>
+
+		<script id="prize" type="text/html">
+			<div class="row cl">
+				<label class="form-label col-2">奖品名称：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{name}}" placeholder="请输入奖品名称" id="name" maxlength="50"/>
+				</div>
+				<label class="form-label col-2">奖品价值：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{price}}" placeholder="请输入奖品价值" id="price" onkeyup="validityPrice(this);" maxlength="8">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">奖品数量：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{number}}" placeholder="请输入奖品数量" id="number" onkeyup="validityNumber(this);" maxlength="5">
+				</div>
+				<label class="form-label col-2">中奖概率(%)：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{rate}}" placeholder="请输入中奖概率" id="rate" onkeyup="validityPrice(this);" maxlength="5">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">奖品类型：</label>
+				<div class="formControls col-2">
+					<span class="select-box">
+					<select id="prizeType" class="select" size="1" datatype="*">
+						<option value="MONEY" {{if prizeTypeEnum == 'MONEY'}}selected="selected"{{/if}}>金额</option>
+						<option value="POINT" {{if prizeTypeEnum == 'POINT'}}selected="selected"{{/if}}>积分</option>
+						<option value="PRODUCT" {{if prizeTypeEnum == 'PRODUCT'}}selected="selected"{{/if}}>商品</option>
+					</select>
+					</span>
+				</div>
+				<label class="form-label col-2">奖品邮费：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{freightPrice}}" placeholder="请输入奖品邮费，包邮为0" id="freightPrice" onkeyup="validityFreightPrice(this);" maxlength="3">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">是否需要填写地址：</label>
+				<div class="formControls col-2">
+					<span class="select-box">
+					<select id="isAddress" class="select" size="1" datatype="*">
+						<option value="true" {{if isAddress}}selected="selected"{{/if}}>是</option>
+						<option value="false" {{if !isAddress}}selected="selected"{{/if}}>否</option>
+					</select>
+					</span>
+				</div>
+				<label class="form-label col-2">是否立即发放奖品：</label>
+				<div class="formControls col-2">
+					<span class="select-box">
+					<select id="isSendPrize" class="select" size="1" datatype="*">
+						<option value="true" {{if isSendPrize}}selected="selected"{{/if}}>是</option>
+						<option value="false" {{if !isSendPrize}}selected="selected"{{/if}}>否</option>
+					</select>
+					</span>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">关联门店：</label>
+				<div class="formControls col-2">
+					<span id="relationName" onclick="chooseStore();" style="cursor:pointer;">{{storeName}}</span>
+					<input type="hidden" id="merchantStoreId" value="{{merchantStoreId}}"/>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">奖品图片：</label>
+				<div class="formControls col-2"> 
+					<span ><a id="prizeImg" href="{{imageUrl}}{{imgPath}}" data-lightbox="prizeImg"><img id="upload_img" src="{{imageUrl}}{{imgPath}}" width="160"/></a></span>
+					<span class="btn-upload form-group">
+					<input type="file" id="inputfile" name="inputfile" >
+					<input type="hidden" value="{{imgPath}}" id="imgPath"/>
+					</span> 
+				</div>
+				
+				<label class="form-label col-2">广告图片：</label>
+				<div class="formControls col-2"> 
+					<span ><a id="adImg" href="{{imageUrl}}{{adImgPath}}" data-lightbox="adImg"><img id="upload_img_ad" src="{{imageUrl}}{{adImgPath}}" width="160"/></a></span>
+					<span class="btn-upload form-group">
+					<input type="file" id="inputfile_ad" name="inputfile_ad" >
+					<input type="hidden" value="{{adImgPath}}" id="adImgPath"/>
+					</span> 
+				</div>
+			</div>
+			
+			<div class="col-10 col-offset-2" style="margin-top:30px;">
+				<button name="draw_prize_add" onClick="save('{{id}}','VALID');" class="btn btn-primary radius permission_hide" type="button"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
+				<button name="" onClick="layer_close();" class="btn btn-default radius" type="button"><i class="Hui-iconfont">&#xe6a6;</i> 取消</button>
+			</div>
+		</script>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, 
+				fileGroupConstants.WDATEPICKER,fileGroupConstants.COMMON, fileGroupConstants.TEMPLATE,
+				fileGroupConstants.VALIDATE, fileGroupConstants.STYLE_PER, fileGroupConstants.FILEUPLOAD
+			]);
+			
+			window.onload = function() {
+				var id = getUrlVars()["id"];
+				drawLotteryActivityId = getUrlVars()["drawLotteryActivityId"];
+				ajaxRequest.ajax(request_url + "drawLotteryActivityPrize/getLeftPrizeRate/"+drawLotteryActivityId,"","GET",function(data){
+					leftPrizeRate = data.model;
+					
+					ajaxRequest.ajax(request_url + "drawLotteryActivityPrize/getPrizeDetail/"+id,"","GET",function(data){
+						data.model.imageUrl = request_url_image;
+						document.getElementById('type-data').innerHTML= template('prize', data.model);
+						currentPrizeRate = data.model.rate;
+						$("#rate").attr("placeholder","请输入中奖概率，最大"+(leftPrizeRate+currentPrizeRate));
+						
+						var uploadFormId = 0;
+						$("#inputfile").change(function(){
+							uploadFormId++;
+					        var formData = new FormData();
+					        var fileObj = document.getElementById("inputfile").files[0];
+					        formData.append('file', fileObj);
+					        
+					        $(this).wrap("<form id='ajaxupload"+uploadFormId+"' action='' method='post' enctype='multipart/form-data'></form>");
+							$("#ajaxupload"+uploadFormId).ajaxSubmit({
+								url: request_url+"/upload/uploadFile?uploadType=IMG",
+								type: "POST",
+								success: function(data) {
+									$("#imgPath").val(data.model.fileUrl);
+									$("#prizeImg").attr("href",request_url_image + data.model.fileUrl);
+									$("#upload_img").attr("src",request_url_image + data.model.fileUrl);
+								}
+							});
+				        });
+				        
+				        var uploadFormAdId = 1000;
+						$("#inputfile_ad").change(function(){
+							uploadFormAdId++;
+					        var formData = new FormData();
+					        var fileObj = document.getElementById("inputfile_ad").files[0];
+					        formData.append('file', fileObj);
+					        
+					        $(this).wrap("<form id='ajaxupload"+uploadFormAdId+"' action='' method='post' enctype='multipart/form-data'></form>");
+							$("#ajaxupload"+uploadFormAdId).ajaxSubmit({
+								url: request_url+"/upload/uploadFile?uploadType=IMG",
+								type: "POST",
+								success: function(data) {
+									$("#adImgPath").val(data.model.fileUrl);
+									$("#adImg").attr("href",request_url_image + data.model.fileUrl);
+									$("#upload_img_ad").attr("src",request_url_image + data.model.fileUrl);
+								}
+							});
+				        });
+						initContentLoad();
+					});
+				});
+			}
+			
+			function save(id,type) {
+				var name = $("#name").val();
+				if(name.trim() == ''){
+					layer.msg("请输入奖品名称");
+					return;
+				}
+				var price = $("#price").val();
+				if(price.trim() == ''){
+					layer.msg("请输入奖品价值");
+					return;
+				}
+				var number = $("#number").val();
+				if(number.trim() == ''){
+					layer.msg("请输入奖品数量");
+					return;
+				}
+				var rate = $("#rate").val();
+				if(rate.trim() == ''){
+					layer.msg("请输入中奖概率");
+					return;
+				}
+				if(rate > leftPrizeRate+currentPrizeRate){
+					layer.msg("奖品中奖概率大于100%");
+					return;
+				}
+				var freightPrice = $("#freightPrice").val();
+				if(freightPrice.trim() == ''){
+					layer.msg("请输入奖品邮费");
+					return;
+				}
+				var merchantStoreId = $("#merchantStoreId").val();
+				if(merchantStoreId == ''){
+					layer.msg("请选择关联门店");
+					return;
+				}
+				var imgPath = $("#imgPath").val();
+				if(imgPath.trim() == ''){
+					layer.msg("请上传奖品图片");
+					return;
+				}
+				var adImgPath = $("#adImgPath").val();
+				if(adImgPath.trim() == ''){
+					layer.msg("请上传广告图片");
+					return;
+				}
+				
+				var param = {
+					"id":id,
+					"drawLotteryActivityId":drawLotteryActivityId,
+					"name":name,
+					"price":price,
+					"number":number,
+					"rate":rate,
+					"freightPrice":freightPrice,
+					"merchantStoreId":merchantStoreId,
+					"imgPath":imgPath,
+					"adImgPath":adImgPath,
+					"statusEnum":type,
+					"isAddress":$("#isAddress").val(),
+					"isSendPrize":$("#isSendPrize").val(),
+					"prizeTypeEnum":$("#prizeType").val()
+				};
+				
+				ajaxRequest.ajax(request_url + "drawLotteryActivityPrize/saveDrawLotteryActivityPrize",param,"POST",function(data){
+					var obj = eval(data);
+						if(obj.ret == '1000') {
+							layer.alert("操作成功！", {
+								closeBtn: 0
+							}, function() {
+								var index = parent.layer.getFrameIndex(window.name);
+								parent.$('#btnSubmit').click();
+								parent.layer.close(index);
+							});
+						} else {
+							layer.msg("操作失败！"+obj.msg, {
+								icon: 5,
+								time: 1000
+							});
+						};
+				});
+			}
+			
+			function validityPrice(obj){
+				if(obj.value.length == 1 && obj.value == '.'){
+					obj.value = '0.';
+				}
+				if(obj.value.length == 2 && obj.value == '00'){
+					obj.value = '0.';
+				}
+				obj.value = obj.value.replace(/[^\d.]/g,"");  //清除“数字”和“.”以外的字符  
+			    obj.value = obj.value.replace(/\.{2,}/g,"."); //只保留第一个. 清除多余的       
+			    obj.value = obj.value.replace(".","$#$").replace(/\./g,"").replace("$#$",".");      
+			    obj.value = obj.value.replace(/^(\-)*(\d+)\.(\d\d).*$/,'$1$2.$3');//只能输入两个小数     
+			}
+			
+			function validityNumber(obj){
+				if(obj.value.length == 1){
+					obj.value = obj.value.replace(/[^1-9]/g,'');
+				}else{
+					obj.value = obj.value.replace(/\D/g,'');
+				}
+			}
+			
+			function validityFreightPrice(obj){
+				obj.value = obj.value.replace(/\D/g,'');
+				if(obj.value.length > 1 && obj.value.startsWith(0)){
+					obj.value = 0;
+				}
+			}
+			
+			function chooseStore(){
+				layer_show("选择门店", "../adPlatform/chooseStore-list.html" , "", "700");
+			}	
+			
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				
+				<div id="type-data">
+				</div>
+		    </form>
+		</div>
+	</body>
+
+</html>

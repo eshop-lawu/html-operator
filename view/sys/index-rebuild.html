@@ -1,0 +1,178 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>索引重建</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				initContentLoad();
+				/*$('#contentTable').bootstrapTable({
+					url: request_url + "merchantAudit/listStoreAudit",
+				});*/
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				return "<a style=\"text-decoration:none\" class=\"ml-5\" href='javascript:;' title = \"查看\" onclick='detail(\"" + row.id + "\")'><i class=\"Hui-iconfont\">&#xe695;</i></a>";
+			}
+			
+			function rebuildIndex(type){
+				var url = request_url + 'index/updateStoreIndex';
+				if(type == 'product'){
+					url = request_url + 'index/updateProductIndex';
+				}else if(type == 'ad'){
+					url = request_url + 'index/updateAdIndex';
+				}
+				
+				$.ajax({
+					url:url,
+					type: "GET",
+					success: function(data) {
+						var obj = eval(data);
+						if(obj.ret == '1000') {
+							layer.alert('操作成功！', {
+								closeBtn: 0
+							}, function() {
+								location.replace(location.href);
+							});
+						} else {
+							layer.msg('操作失败！', {
+								icon: 5,
+								time: 1000
+							});
+						};
+					},
+					error: function(data) {
+						layer.msg('操作失败！', {
+							icon: 5,
+							time: 1000
+						});
+					}
+				});
+			}
+			
+			function delInvalidIndex(type){
+				var url = request_url + 'index/delInvalidStoreIndex';
+				if(type == 'product'){
+					url = request_url + 'index/delInvalidProductIndex';
+				}else if(type == 'ad'){
+					url = request_url + 'index/delInvalidAdIndex';
+				}
+				
+				$.ajax({
+					url:url,
+					type: "GET",
+					success: function(data) {
+						var obj = eval(data);
+						if(obj.ret == '1000') {
+							layer.alert('操作成功！', {
+								closeBtn: 0
+							}, function() {
+								location.replace(location.href);
+							});
+						} else {
+							layer.msg('操作失败！', {
+								icon: 5,
+								time: 1000
+							});
+						};
+					},
+					error: function(data) {
+						layer.msg('操作失败！', {
+							icon: 5,
+							time: 1000
+						});
+					}
+				});
+			}
+			
+			function delAllIndex(type){
+				var url = request_url + 'index/delAllStoreIndex';
+				if(type == 'product'){
+					url = request_url + 'index/delAllProductIndex';
+				}else if(type == 'ad'){
+					url = request_url + 'index/delAllAdIndex';
+				}
+				
+				$.ajax({
+					url:url,
+					type: "GET",
+					success: function(data) {
+						var obj = eval(data);
+						if(obj.ret == '1000') {
+							layer.alert('操作成功！', {
+								closeBtn: 0
+							}, function() {
+								location.replace(location.href);
+							});
+						} else {
+							layer.msg('操作失败！', {
+								icon: 5,
+								time: 1000
+							});
+						};
+					},
+					error: function(data) {
+						layer.msg('操作失败！', {
+							icon: 5,
+							time: 1000
+						});
+					}
+				});
+			}
+			
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 系统管理 <span class="c-gray en">&gt;</span> 索引重建
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="cl pd-5 bg-1 bk-gray mt-20"> 
+				<span class="l">
+					<a href="javascript:;" name="index_store" onclick="rebuildIndex('store')" class="btn btn-primary radius permission_hide"><i class="Hui-iconfont">&#xe600;</i> 重建门店索引</a> 
+					<a href="javascript:;" name="index_product" onclick="rebuildIndex('product')" class="btn btn-primary radius permission_hide"><i class="Hui-iconfont">&#xe600;</i> 重建商品索引</a>
+					<a href="javascript:;" name="index_ad" onclick="rebuildIndex('ad')" class="btn btn-primary radius permission_hide"><i class="Hui-iconfont">&#xe600;</i> 重建广告索引</a>
+				</span> 
+			</div>
+			
+			<!--<div class="cl pd-5 bg-1 bk-gray mt-20"> 
+				<span class="l">
+					<a href="javascript:;" name="indexDel_store" onclick="delInvalidIndex('store')" class="btn btn-danger radius permission_hide"><i class="Hui-iconfont">&#xe6e2;</i> 删除无效门店索引</a> 
+					<a href="javascript:;" name="indexDel_product" onclick="delInvalidIndex('product')" class="btn btn-danger radius permission_hide"><i class="Hui-iconfont">&#xe6e2;</i> 删除无效商品索引</a>
+					<a href="javascript:;" name="indexDel_ad" onclick="delInvalidIndex('ad')" class="btn btn-danger radius permission_hide"><i class="Hui-iconfont">&#xe6e2;</i> 删除无效广告索引</a>
+				</span> 
+			</div>-->
+			
+			<div class="cl pd-5 bg-1 bk-gray mt-20"> 
+				<span class="l">
+					<a href="javascript:;" name="indexDelAll_store" onclick="delAllIndex('store')" class="btn btn-danger radius permission_hide"><i class="Hui-iconfont">&#xe6e2;</i> 清空门店索引</a> 
+					<a href="javascript:;" name="indexDelAll_product" onclick="delAllIndex('product')" class="btn btn-danger radius permission_hide"><i class="Hui-iconfont">&#xe6e2;</i> 清空商品索引</a>
+					<a href="javascript:;" name="indexDelAll_ad" onclick="delAllIndex('ad')" class="btn btn-danger radius permission_hide"><i class="Hui-iconfont">&#xe6e2;</i> 清空广告索引</a>
+				</span> 
+			</div>
+		</div>
+	</body>
+
+</html>

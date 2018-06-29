@@ -1,0 +1,247 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<LINK rel="Bookmark" href="/favicon.ico">
+		<LINK rel="Shortcut Icon" href="/favicon.ico" />
+		<title>抢购活动商品审核</title>
+		<script type="text/javascript" src="../../js/loadExtendFile.js"></script>
+		<script type="text/javascript">
+			// 加载资源文件
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, 
+				fileGroupConstants.TEMPLATE, fileGroupConstants.BOOTSTRAP, fileGroupConstants.EDITABLE,
+				fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			
+			/* 抢购活动商品状态枚举 */
+			var status_enum = {
+				"NOT_AUDITED": { key: "NOT_AUDITED", label: "未审核" },
+				"AUDITED": { key: "AUDITED", label: "已审核" },
+				"NOT_PASS": { key: "NOT_PASS", label: "未通过" },
+			};
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				
+				/**获取html页面之间跳转的参数**/
+				var params = getUrlVars();
+				var id = params["id"];
+				var activityName = decodeURI(params["name"]);
+				var startDate = decodeURI(params["startDate"]);
+				$("#activityName").val(activityName);
+				$("#startDate").val(startDate);
+				
+				// 加载列表数据
+				$('#contentTable').bootstrapTable({
+					url: request_url_seckill_activity_product_page_search.replace("{id}", id),
+					showRefresh: true,
+					ajaxOptions: {async:true,timeout:10000},
+                    onLoadSuccess: function (aa, bb, cc) {
+		                $(".priority.editable").editable({
+		                	type: 'text',
+		                	name: "priority",
+		                	title: '排序优先级',
+		                    url: function (params) {
+		                    	let data = {"priority": params.value};
+            					$.ajaxExtend({
+									url: request_url + "seckillActivityProduct/update/" + params.pk,
+									type: "PUT",
+									data: data,
+									success: function(obj) {
+										layer.msg("操作成功", {
+											icon: 1,
+											time: 1000
+										});
+									},
+								});
+		                    },
+                          	validate: function(value) {
+					           	if(!/^\d+$/.test(value)) return '请输入一个正整数';
+					        }
+		                });
+		            },
+				});
+				initContentLoad();
+				
+				var obj = {};
+				obj['status_enum'] = status_enum;
+				var html = template('template', obj);
+				$("#searchForm").html(html);
+			};
+
+			/*抢购活动商品-不通过*/
+			function seckill_activity_product_not_passed(id,productName,merchantId) {
+				$("#productName").val(productName);
+				$("#merchantId").val(merchantId);
+				var index = layer_extend_show({
+					type: 1,
+					width: 350,
+					height: 250,
+					title: "反馈原因",
+					content: $("#reasons-layer-div"),
+					full: false,
+				});
+				
+				$("#not-passed").unbind().click(function(){
+					var reasons = $("#reasons").val();
+					if(reasons.trim() == ''){
+						layer.msg("请输入反馈原因");
+						return;
+					}
+					
+					$.ajaxExtend({
+						url: request_url_seckill_activity_product_not_passed.replace("{id}", id),
+						type: "PUT",
+						data: $("#dataForm").serialize(),
+						success: function(obj) {
+							layer.msg("操作成功", {
+								icon: 1,
+								time: 1000
+							}, function(){
+								layer.close(index);
+								refresh();
+							});
+						},
+					});
+				});
+			}
+			
+			/*抢购活动-审核*/
+			function seckill_activity_product_audit(id) {
+				layer.confirm('是否确认审核？', {
+					btn: ['确认', '取消'] //按钮
+				}, function() {
+					if(!isNull(id)) {
+						$.ajaxExtend({
+							url: request_url_seckill_activity_product_audit.replace("{id}", id),
+							type: "PUT",
+							success: function(obj) {
+								layer.msg("审核成功", {
+									icon: 1,
+									time: 1000
+								}, refresh());
+							},
+						});
+					}
+				});
+			}
+			
+			/* 查看抢购活动商品 */
+			function product_detail(id){
+				layer_extend_show({
+					type: 2,
+					title: "商品详情",
+					url: "/view/product/product-detail.html?id=" + id,
+					full: true,
+				});
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				var optionHtml = '';
+				optionHtml = '<a class="ml-5 permission_hide" name="productAudit_detail" style="text-decoration:none" title="查看商品" href=\'javascript:;\' onclick="product_detail(\'' + row.productId + '\')"><i class="Hui-iconfont">&#xe695;</i></a>';
+				if (row.status == status_enum.NOT_AUDITED.key) {
+					optionHtml += '<a class="ml-5 permission_hide" name="seckill_activity_product_audit" style="text-decoration:none" title="审核" href=\'javascript:;\' onclick="seckill_activity_product_audit(\'' + row.activityProductId + '\')"><i class="Hui-iconfont">&#xe6e1;</i></a>';
+					optionHtml += '<a class="ml-5 permission_hide" name="seckill_activity_product_not_passed" style="text-decoration:none" title="审核不通过" href=\'javascript:;\' onclick="seckill_activity_product_not_passed(\'' + row.activityProductId + '\',\'' + row.productName + '\',\'' + row.merchantId + '\')"><i class="Hui-iconfont">&#xe6dd;</i></a>';
+				}
+				return optionHtml;
+			}
+
+			/*处理抢购活动商品状态枚举*/
+			function get_status_str(data) {
+				return status_enum[data].label;
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			function refresh() {
+				$('#contentTable').bootstrapTable('refresh');
+			}
+			
+			function editable_style(value, row, index) {
+ 				return "<a href=\"#\" data-pk=\"" + row.activityProductId + "\" class=\"priority editable\">" + value + "</a>";
+			}
+		</script>
+		<script id="template" type="text/html">
+			<select name="status" class="select" style="width: 250px;">
+				<option value="">请选择状态</option>
+				{{each status_enum as status}}
+					<option value="{{status.key}}">{{status.label}}</option>
+				{{/each}}
+			</select>
+		</script>
+	</head>
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 审核管理 <span class="c-gray en">&gt;</span> 抢购活动审核 <span class="c-gray en">&gt;</span> 抢购活动商品审核
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:history.back();" title="返回"><i class="Hui-iconfont">&#xe6d4;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+				</form>
+				<button type="button" class="btn btn-success" id="btnSubmit"><i class="Hui-iconfont">&#xe665;</i>搜索</button>
+			</div>
+			<div class="mt-20">
+				<table id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="get" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<!--<th data-checkbox="true"></th>-->
+							<th data-field="activityProductId">id</th>
+							<th data-formatter="getImage" data-field="productPicture" data-visible="true">商品图片</th>
+							<th data-field="productName" data-visible="true">商品名称</th>
+							<th data-field="originalPrice" data-visible="true">商品原价</th>
+							<th data-field="saleMoney" data-visible="true">商品定价</th>
+							<th data-field="priority" data-formatter="editable_style">排序优先级</th>
+							<th data-field="status" data-formatter="get_status_str" data-visible="true">状态</th>
+							<th data-field="productModelCount" data-visible="true">商品总数量</th>
+							<th data-field="leftCount" data-visible="true">剩余数量</th>
+							<th data-field="turnover" data-visible="true">成交额</th>
+							<th data-field="reasons" data-visible="true">反馈原因</th>
+							<th data-field="auditorAccount">审核人员</th>
+							<th data-field="auditTime" data-visible="true">审核时间</th>
+							<th data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+		<div class="pd-20" id="reasons-layer-div" style="display: none;">
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				<div class="row cl">
+					<label class="form-label col-3"><span class="c-red">*</span>反馈原因</label>
+					<div class="formControls col-5">
+						<textarea placeholder="请输入反馈原因" id="reasons" name="reasons" rows="3" style="resize: none;"></textarea>
+					</div>
+				</div>
+				<div class="row cl">
+					<div class="col-9 col-offset-3">
+						<input class="btn btn-primary radius" type="button" id="not-passed" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+					</div>
+				</div>
+				<input type="hidden" id="productName" name="productName" />
+				<input type="hidden" id="merchantId" name="merchantId" />
+				<input type="hidden" id="activityName" name="activityName" />
+				<input type="hidden" id="startDate" name="startDate" />
+			</form>
+		</div>
+		<style>
+			.top {bottom: auto}			
+		</style>
+	</body>
+</html>

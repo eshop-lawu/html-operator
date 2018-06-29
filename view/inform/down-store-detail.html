@@ -1,0 +1,249 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<title>门店详情</title>
+		
+		<script id="store" type="text/html">
+			<div class="row cl">
+				<label class="form-label col-2">店铺名称：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.name}}" placeholder="" id="" name="" readonly="true">
+				</div>
+				<label class="form-label col-2">店铺类型：</label>
+				<div class="formControls col-2">
+					{{if model.manageType == 'NORMAL_MERCHANT'}}
+						<input type="text" class="input-text" value="普通店铺" placeholder="" id="" name="" readonly="true">
+					{{else if model.manageType == 'ENTITY_MERCHANT'}}
+						<input type="text" class="input-text" value="实体店铺" placeholder="" id="" name="" readonly="true">
+					{{/if}}
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">负责人姓名：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.principalName}}" placeholder="" id="" name="" readonly="true">
+				</div>
+				<label class="form-label col-2">负责人手机号：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.principalMobile}}" placeholder="" id="" name="" readonly="true">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">店铺地址：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.regionName}}{{model.address}}" placeholder="" id="" name="" readonly="true">
+				</div>
+				<label class="form-label col-2">店铺行业：</label>
+				<div class="formControls col-2">
+					<input type="text" class="input-text" value="{{model.industryName}}" placeholder="" id="" name="" readonly="true">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">店铺介绍：</label>
+				<div class="formControls col-6">
+					<textarea name="" cols="" rows="" class="textarea"  placeholder="" datatype="*10-100" dragonfly="true" readonly="true">{{model.intro}}</textarea>
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">执照类型：</label>
+				<div class="formControls col-2">
+					{{if model.certifType == 'CERTIF_TYPE_IDCARD'}}
+						<input type="text" class="input-text" value="身份证" placeholder="" id="" name="" readonly="true">
+					{{else if model.certifType == 'CERTIF_TYPE_LICENSE'}}
+						<input type="text" class="input-text" value="营业执照" placeholder="" id="" name="" readonly="true">
+					{{/if}}
+				</div>
+				<label class="form-label col-2">申请类型：</label>
+				<div class="formControls col-2">
+					{{if model.typeEnum == 'AUDIT_TYPE_STORE'}}
+						<input type="text" class="input-text" value="申请实体店" placeholder="" id="" name="" readonly="true">
+					{{else if model.typeEnum == 'AUDIT_TYPE_EDIT_INFO'}}
+						<input type="text" class="input-text" value="修改资料" placeholder="" id="" name="" readonly="true">
+					{{/if}}
+				</div>
+			</div>
+			
+			{{if model.certifType == 'CERTIF_TYPE_IDCARD'}}
+				<div class="row cl">
+					<label class="form-label col-2">身份证姓名：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.operatorName}}" placeholder="" id="" name="" readonly="true">
+					</div>
+					<label class="form-label col-2">身份证号码：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.operatorCardId}}" placeholder="" id="" name="" readonly="true">
+					</div>
+				</div>
+			{{else if model.certifType == 'CERTIF_TYPE_LICENSE'}}
+				<!--<div class="row cl">
+					<label class="form-label col-2">执照名称：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.companyName}}" placeholder="" id="" name="" readonly="true">
+					</div>
+					<label class="form-label col-2">执照地址：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.companyAddress}}" placeholder="" id="" name="" readonly="true">
+					</div>
+				</div>-->
+				<div class="row cl">
+					<label class="form-label col-2">执照号码：</label>
+					<div class="formControls col-2">
+						<input type="text" class="input-text" value="{{model.regNumber}}" placeholder="" id="" name="" readonly="true">
+					</div>
+					<label class="form-label col-2">执照有效期：</label>
+					<div class="formControls col-2">
+						{{if (model.licenseIndate == '2000-01-01')}}
+							<input type="text" class="input-text" value="永久" placeholder="" id="" name="" readonly="true">
+						{{else}}
+							<input type="text" class="input-text" value="{{model.licenseIndate}}" placeholder="" id="" name="" readonly="true">
+						{{/if}}
+					</div>
+				</div>
+			{{/if}}
+			
+			{{if model.certifType == 'CERTIF_TYPE_IDCARD'}}
+				<div class="row cl">
+					<label class="form-label col-2">身份证照：</label>
+					<div class="formControls col-10">
+						{{each model.idcardUrl as data}}
+							<a href="{{model.imageUrl}}{{data}}" data-lightbox="idcardUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+			{{/if}}
+			<div class="row cl">
+				<label class="form-label col-2">门店logo：</label>
+				<div class="formControls col-10">
+					<a href="{{model.imageUrl}}{{model.logoUrl}}" data-lightbox="logoUrl"><img src="{{model.imageUrl}}{{model.logoUrl}}" width="160"/></a>
+				</div>
+			</div>
+			{{if model.manageType == 'ENTITY_MERCHANT' || model.typeEnum == 'AUDIT_TYPE_STORE'}}
+				<div class="row cl">
+					<label class="form-label col-2">门店照：</label>
+					<div class="formControls col-10">
+						{{each model.storeUrl as data}}
+					       <a href="{{model.imageUrl}}{{data}}" data-lightbox="storeUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-2">室内环境照：</label>
+					<div class="formControls col-10">
+						{{each model.environmentUrl as data}}
+					       <a href="{{model.imageUrl}}{{data}}" data-lightbox="environmentUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+			{{/if}}
+			{{if model.certifType == 'CERTIF_TYPE_LICENSE'}}
+				<div class="row cl">
+					<label class="form-label col-2">营业执照：</label>
+					<div class="formControls col-10">
+						{{each model.licenseUrl as data}}
+					       <a href="{{model.imageUrl}}{{data}}" data-lightbox="licenseUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+				<div class="row cl">
+					<label class="form-label col-2">其他照：</label>
+					<div class="formControls col-10">
+						{{each model.otherUrl as data}}
+					       <a href="{{model.imageUrl}}{{data}}" data-lightbox="otherUrl"><img src="{{model.imageUrl}}{{data}}" width="160"/></a>
+					    {{/each}}
+					</div>
+				</div>
+			{{/if}}
+		</script>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.COMMON, fileGroupConstants.TEMPLATE,fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				var id = getUrlVars()["id"];
+				ajaxRequest.ajax(request_url + "merchantAudit/getRecentMerchantAuditSuccessRecord/" + id,"","GET",function(data){
+					if(data.model != null && data.model > 0){
+						ajaxRequest.ajax(request_url + "merchantAudit/getMerchantStoreAudit/" + data.model,"","GET",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									obj.model.imageUrl = request_url_image;
+									document.getElementById('type-data').innerHTML= template('store', obj);
+									initContentLoad();
+								} else {
+									layer.msg('加载失败！', {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					}else{
+						layer.msg('加载失败！', {
+							icon: 5,
+							time: 1000
+						});
+					}
+				});
+			}
+			
+			function auditSuccess(id,typeEnum,merchantStoreId) {
+				layer.confirm('是否确认审核通过？', {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						var jsonData ={
+							"storeAuditId":id,"auditStatusEnum":"MERCHANT_AUDIT_STATUS_CHECKED","typeEnum":typeEnum,"merchantStoreId":merchantStoreId,"remark":""
+						}
+						ajaxRequest.ajax(request_url + "merchantAudit/updateMerchantAudit",jsonData,"POST",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert('操作成功！', {
+										closeBtn: 0
+									}, function() {
+										var index = parent.layer.getFrameIndex(window.name);
+										parent.$('#btnSubmit').click();
+										parent.layer.close(index);
+									});
+								} else {
+									layer.msg('操作失败！' + obj.msg, {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					},
+					function() {
+						//取消
+					});
+			}
+			
+			function auditFail(id,typeEnum,merchantStoreId) {
+				layer_show("审核不通过", "store-audit-fail.html?id=" + id + "&typeEnum="+ typeEnum + "&merchantStoreId=" + merchantStoreId, "", "320");
+			}
+			
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				
+				<div id="type-data">
+				</div>
+			    
+		    </form>
+		</div>
+	</body>
+
+</html>

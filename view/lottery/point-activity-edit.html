@@ -1,0 +1,574 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<script src="../../plugins/image-browsing/js/jquery-1.10.2.min.js"></script>
+		<script src="../../plugins/image-browsing/js/lightbox-2.6.min.js"></script>
+		<link href="../../plugins/image-browsing/css/lightbox.css" rel="stylesheet" />
+		<title>活动详情</title>
+
+		<script id="activity" type="text/html">
+			<div class="row cl">
+				<label class="form-label col-2">奖品名称：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{prizeName}}" placeholder="请输入奖品名称" id="prizeName" maxlength="50"/>
+				</div>
+				<label class="form-label col-2">奖品价值：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{prizePrice}}" placeholder="请输入奖品价值" id="prizePrice" maxlength="8" onkeyup="validityPrice(this);">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">抽奖积分：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{lotteryPoint}}" placeholder="请输入抽奖积分" id="lotteryPoint" maxlength="5" onkeyup="validityNumber(this);">
+				</div>
+				<label class="form-label col-2">中奖人数：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{lotteryCount}}" placeholder="请输入中奖人数" id="lotteryCount" maxlength="5" onkeyup="validityNumber(this);">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">起止时间：</label>
+				<div class="formControls col-3">
+					<input type="text" readonly="true" value="{{beginTime}}" onfocus="WdatePicker({minDate:'%y-%M-%d',maxDate:'#F{$dp.$D(\'datemax\',{d:-1})}',dateFmt:'yyyy-MM-dd'})" id="datemin"  class="input-medium Wdate" style="width:190px;height: 28px;"> -
+					<input type="text" readonly="true" value="{{endTime}}" onfocus="WdatePicker({minDate:'#F{$dp.$D(\'datemin\',{d:1})}',dateFmt:'yyyy-MM-dd'})" id="datemax" class="input-medium Wdate" style="width:190px;height: 28px">
+				</div>
+				<label class="form-label col-2">开奖时间：</label>
+				<div class="formControls col-3">
+					<input type="text" readonly="true" value="{{lotteryTime}}" onfocus="WdatePicker({minDate:'#F{$dp.$D(\'datemax\',{d:1})}',dateFmt:'yyyy-MM-dd'})" id="lotteryTime" class="input-medium Wdate" style="width:402px;height: 28px">
+				</div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">热度人数：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{hotNumber}}" placeholder="请输入热度人数" id="hotNumber" maxlength="10" onkeyup="validityNumber(this);">
+				</div>
+                <label class="form-label col-2">基本中奖号码：</label>
+                <div class="formControls col-3">
+                    <input type="number" id="lottery-base-num" value="{{lotteryBaseNum}}" class="input-text" readonly="true" style="width:100%"/>
+                </div>
+                <div class="formControls col-7"></div>
+			</div>
+				
+			<div class="row cl">
+				<label class="form-label col-2">奖品图片：</label>
+				<div class="formControls col-2"> 
+					<span ><a id="imgTag" href="{{imageUrl}}{{prizeImagePath}}" data-lightbox="imgTag"><img id="upload_img" src="{{imageUrl}}{{prizeImagePath}}" width="160"/></a></span>
+					<span class="btn-upload form-group">
+					<input type="file" id="inputfile" name="inputfile" >
+					<input type="hidden" value="{{prizeImagePath}}" id="prizeImagePath"/>
+					</span> 
+				</div>
+				<div class="col-4"> </div>
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">活动介绍：</label>
+				<div id="introduction" style="margin-bottom:15px;">
+					<input type="button" onclick="addIntroduction();" value="添加活动介绍" style="width: 120px;background-color:#5bb75b;color: white;height: 28px;font-size: 16px;"/>
+					<span>*请填写活动介绍排序数值，按照从小到大排列</span>
+				</div>
+				{{each lotteryDetailDTOS as model index}}
+					<label class="form-label col-2"></label>
+					<div class="formControls col-2" id="introduction_{{index}}">
+						<input type="text" name="orderNum" value="{{model.orderNum}}" placeholder="排序" style="width: 80px;height: 22px;font-size: 16px;" onkeyup="validityNumber(this);" maxlength="5"/>
+						<input type="button" value="删除" id="introductionDel_{{index}}" onclick="delIntroduction(this);" style="width: 80px;background-color:red;color: white;height: 28px;font-size: 16px;margin-left: -4px;"/>
+						<a href="{{imageUrl}}{{model.imagePath}}" data-lightbox="introductionImg"><img src="{{imageUrl}}{{model.imagePath}}" width="160"/></a>
+						<input type="hidden" value="{{model.imagePath}}" name="imagePath"/>
+					</div>
+			    {{/each}}
+			</div>
+			
+			<div class="row cl">
+				<label class="form-label col-2">中奖信息：</label>
+				<div id="lotteryInfo" style="margin-bottom:15px;">
+					<input type="button" onclick="addLotteryInfo();" value="添加中奖信息" style="width: 120px;background-color:#5bb75b;color: white;height: 28px;font-size: 16px;"/>
+					<span>*请填写中奖信息排序数值，按照从小到大排列</span>
+				</div>
+				{{each lotteryResultDTOS as model index}}
+					<label class="form-label col-2"></label>
+					<div class="formControls col-2" id="lotteryInfo_{{index}}">
+						<input type="text" name="orderNum" value="{{model.orderNum}}" placeholder="排序" style="width: 80px;height: 22px;font-size: 16px;" onkeyup="validityNumber(this);" maxlength="5"/>
+						<input type="button" value="删除" id="lotteryInfoDel_{{index}}" onclick="delLotteryInfo(this);" style="width: 80px;background-color:red;color: white;height: 28px;font-size: 16px;margin-left: -4px;"/>
+						<a href="{{imageUrl}}{{model.imagePath}}" data-lightbox="lotteryInfoImg"><img src="{{imageUrl}}{{model.imagePath}}" width="160"/></a>
+						<input type="hidden" value="{{model.imagePath}}" name="lotteryImagePath"/>
+					</div>
+			    {{/each}}
+			</div>
+			
+			<div class="row cl">
+			<div class="col-10 col-offset-2">
+				<button name="point_lottery_add" onClick="save('{{id}}','{{statusEnum}}');" class="btn btn-primary radius permission_hide" type="button"><i class="Hui-iconfont">&#xe632;</i> 保存</button>
+				{{if statusEnum == 'UNPUBLISHED'}}
+					<button name="point_lottery_add" onClick="save({{id}},'PUBLISHED');" class="btn btn-secondary radius permission_hide" type="button"><i class="Hui-iconfont">&#xe603;</i> 发布</button>
+				{{/if}}
+				{{if statusEnum == 'PARTICIPATION_END'}}
+					{{if !lotteryBaseNum}}
+						<input class="btn btn-primary radius permission_hide" type="button" name="point_lottery_activity_generate_basic_number" id="generate-basic-number" value="生成基础中奖号码">
+					{{/if}}
+					{{if !lotteryResultNums}}
+						<input class="btn btn-primary radius permission_hide" type="button" name="point_lottery_activity_save_winning_number" id="save-winning-numbers" value="保存中奖号码">
+					{{/if}}
+				{{/if}}
+				<button name="" onClick="layer_close();" class="btn btn-default radius" type="button"><i class="Hui-iconfont">&#xe6a6;</i> 取消</button>
+			</div>
+		</script>
+		<script id="generate-basic-number-template" type="text/html">
+        	<form class="form form-horizontal" id="generate-basic-number-form">
+                <div class="row cl" id="data-form-div">
+					<div class="row cl">
+		                <label class="form-label col-2"><span class="c-red">*</span>上证指数：</label>
+		                <div class="formControls col-4">
+		                    <input type="number" name="shanghaiCompositeIndex" placeholder="请输入开奖日收盘时的上证指数" class="input-text" style="width:100%"/>
+		                </div>
+		                <label class="form-label col-2"><span class="c-red">*</span>深证成指：</label>
+		                <div class="formControls col-4">
+		                    <input type="number" name="shenzhenComponentIndex" placeholder="请输入开奖日收盘时的深证成指" class="input-text" style="width:100%"/>
+		                </div>
+		            </div>
+                </div>
+                <div class="row cl">
+                    <div class="col-8 col-offset-4">
+                        <input class="btn btn-secondary radius ml-50" type="button" id="generate-basic-number-confirm" value="确认">
+                    </div>
+                </div>  
+            </form>
+        </script>
+        <script id="save-winning-numbers-template" type="text/html">
+        	<form class="form form-horizontal" id="save-winning-numbers-form">
+                <div class="row cl" id="data-form-div">
+					<div class="row cl">
+		                <label class="form-label col-2"><span class="c-red">*</span>中奖号码：</label>
+		                <div class="formControls col-10">
+		                    <input type="text" name="prizeNumbers" id="prize-numbers" placeholder="请输入中奖号码(多个中奖号码用英文逗号','分隔)" class="input-text"/>
+		                </div>
+		                <div class="formControls col-6"></div>
+		            </div>
+                </div>
+                <div class="row cl">
+                    <div class="col-8 col-offset-4">
+                        <input class="btn btn-secondary radius ml-50" type="button" id="save-winning-numbers-confirm" value="确认">
+                    </div>
+                </div>  
+            </form>
+        </script>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, 
+				fileGroupConstants.WDATEPICKER,fileGroupConstants.COMMON, fileGroupConstants.TEMPLATE,
+				fileGroupConstants.VALIDATE, fileGroupConstants.STYLE_PER, fileGroupConstants.FILEUPLOAD
+			]);
+			
+			window.onload = function() {
+				var id = getUrlVars()["id"];
+				ajaxRequest.ajax(request_url + "pointLotteryActivity/getPointLotteryActivity/" + id,"","GET",function(data){
+					data.model.imageUrl = request_url_image;
+					document.getElementById('type-data').innerHTML= template('activity', data.model);
+					
+					var uploadFormId = 0;
+					$("#inputfile").change(function(){
+						uploadFormId++;
+				        var formData = new FormData();
+				        var fileObj = document.getElementById("inputfile").files[0];
+				        formData.append('file', fileObj);
+				        
+				        $(this).wrap("<form id='ajaxupload"+uploadFormId+"' action='' method='post' enctype='multipart/form-data'></form>");
+						$("#ajaxupload"+uploadFormId).ajaxSubmit({
+							url: request_url+"/upload/uploadFile?uploadType=IMG",
+							type: "POST",
+							success: function(data) {
+								$("#prizeImagePath").val(data.model.fileUrl);
+								$("#imgTag").attr("href",request_url_image + data.model.fileUrl);
+								$("#upload_img").attr("src",request_url_image + data.model.fileUrl);
+							}
+						});
+			        });
+			        
+			        var attent_number = data.model.attentNumber;
+			        var lottery_count = data.model.lotteryCount;
+			        jQuery.validator.addMethod("digitalPrecision", function(value, element, param) {
+	                    if (this.optional(element)) {
+	                        return true;
+	                    }
+	                    return /^\d+(\.\d{1,2})?$/.test(value);
+	                }, "请输入合法数字(保留两位小数)");
+	                jQuery.validator.addMethod("winningNumber", function(value, element, param) {
+	                    if (this.optional(element)) {
+	                        return true;
+	                    }
+	                    return /^\d+(,\d+)*$/.test(value);
+	                }, "中奖号码为整数,且多个中奖号码用英文逗号','分隔");
+	            	
+	                $("#generate-basic-number").click(function(){
+	                	var html = template('generate-basic-number-template', {});
+		                var layer_index = layer_extend_show({
+		                    type: 1,
+		                    title: "生成基础中奖号码",
+		                    content: html,
+		                    full: false,
+		                    width: 600,
+		                    height: 400
+		                });
+		                var validator = $("#generate-basic-number-form").validate({
+		                    rules: {
+		                    	shanghaiCompositeIndex: {
+		                            required: true,
+		                            min:0.01,
+		                            digitalPrecision: true
+		                        },
+		                        shanghaiCompositeIndex: {
+		                            required: true,
+		                            min:0.01,
+		                            digitalPrecision: true
+		                        }
+		                    },
+		                    messages: {
+		                    }
+		                });
+		                $("#generate-basic-number-confirm").click(function(){
+	            			validator.form();
+							if (!validator.valid()) {
+								return null;
+							}
+		                	$.ajaxExtend({
+	                            url: request_url_point_lottery_activity_generate_basic_number.replace("{id}", id),
+	                            type: "PUT",
+	                            data: $("#generate-basic-number-form").serialize(),
+	                            success: function(obj) {
+	                            	$("#lottery-base-num").val(obj.model);
+	                            	layer.msg('生成成功！', {icon:1, time:1000}, function(){
+	                                    layer.close(layer_index);
+	                                });
+	                            }
+	                        });
+		                })
+	                });
+	                $("#save-winning-numbers").click(function(){
+	                	var html = template('save-winning-numbers-template', {});
+		                var layer_index = layer_extend_show({
+		                    type: 1,
+		                    title: "保存中奖号码",
+		                    content: html,
+		                    full: false,
+		                    width: 600,
+		                    height: 250
+		                });
+		                var validator = $("#save-winning-numbers-form").validate({
+		                    rules: {
+		                    	prizeNumbers: {
+		                            required: true,
+		                            winningNumber:true
+		                        }
+		                    },
+		                    messages: {
+		                    }
+		                });
+		                $("#save-winning-numbers-confirm").click(function(){
+	            			validator.form();
+							if (!validator.valid()) {
+								return null;
+							}
+							var abnormal_numbers = [];
+							var remove_duplicate_numbers = [];
+							var prize_numbers = $("#prize-numbers").val().split(",");
+							if (lottery_count != prize_numbers.length) {
+								layer.msg("请填写" + lottery_count +  "个有效的中奖号码", {icon:5});
+								return;
+							}
+		                    prize_numbers.forEach(function(item){
+		                    	if ($.inArray(item, remove_duplicate_numbers) < 0) {
+		                    		remove_duplicate_numbers.push(item);
+		                    	}
+		                    	if (Number(item) <= 0 || Number(attent_number) < Number(item)) {
+			                    	abnormal_numbers.push(item);
+			                    }
+		                    });
+		                    if (remove_duplicate_numbers.length != prize_numbers.length) {
+		                    	layer.msg("有重复的中奖号码", {icon:5});
+		                    	return;
+		                    }
+		                    if (abnormal_numbers.length > 0) {
+		                    	layer.msg(abnormal_numbers.join(",") + '不是一个有效的中奖号码', {icon:5});
+		                    	return;
+		                    }
+		                	$.ajaxExtend({
+	                            url: request_url_point_lottery_activity_save_winning_number.replace("{id}", id),
+	                            type: "PUT",
+	                            data: $("#save-winning-numbers-form").serialize(),
+	                            success: function(obj) {
+	                            	$("#save-winning-numbers").remove();
+	                            	layer.msg('操作成功！', {icon:1, time:1000}, function(){
+	                                    layer.close(layer_index);
+	                                });
+	                            }
+	                        });
+		                })
+	                });
+			        
+					initContentLoad();
+				});
+			}
+			
+			function save(id,type) {
+				var prizeName = $("#prizeName").val();
+				if(prizeName.trim() == ''){
+					layer.msg("请输入奖品名称");
+					return;
+				}
+				var prizePrice = $("#prizePrice").val();
+				if(prizePrice.trim() == ''){
+					layer.msg("请输入奖品价值");
+					return;
+				}
+				var lotteryPoint = $("#lotteryPoint").val();
+				if(lotteryPoint.trim() == ''){
+					layer.msg("请输入抽奖积分");
+					return;
+				}
+				var lotteryCount = $("#lotteryCount").val();
+				if(lotteryCount.trim() == ''){
+					layer.msg("请输入中奖人数");
+					return;
+				}
+				var datemin = $("#datemin").val();
+				if(datemin.trim() == ''){
+					layer.msg("请选择开始时间");
+					return;
+				}
+				var datemax = $("#datemax").val();
+				if(datemax.trim() == ''){
+					layer.msg("请选择截止时间");
+					return;
+				}
+				var lotteryTime = $("#lotteryTime").val();
+				if(lotteryTime.trim() == ''){
+					layer.msg("请选择开奖时间");
+					return;
+				}
+				var hotNumber = $("#hotNumber").val();
+				if(hotNumber.trim() == ''){
+					layer.msg("请输入热度人数");
+					return;
+				}
+				var prizeImagePath = $("#prizeImagePath").val();
+				if(prizeImagePath.trim() == ''){
+					layer.msg("请上传奖品图片");
+					return;
+				}
+				
+				var allImagePath = '';
+				var allOrderNum = '';
+				var allType = '';
+				var imagePath = document.getElementsByName("imagePath");  
+				if(imagePath.length>0){
+					for(var i=0;i<imagePath.length;i++){
+						if(imagePath[i].value==''){
+							layer.msg("请上传活动介绍图片");
+							return;
+						}
+						allImagePath = allImagePath + imagePath[i].value + ",";
+						allType = allType + 1 + ",";
+					}
+				}
+				var lotteryImagePath = document.getElementsByName("lotteryImagePath");  
+				if(lotteryImagePath.length>0){
+					for(var i=0;i<lotteryImagePath.length;i++){
+						if(lotteryImagePath[i].value==''){
+							layer.msg("请上传中奖信息图片");
+							return;
+						}
+						allImagePath = allImagePath + lotteryImagePath[i].value + ",";
+						allType = allType + 2 + ",";
+					}
+				}
+				var orderNum = document.getElementsByName("orderNum");  
+				if(orderNum.length>0){
+					for(var i=0;i<orderNum.length;i++){
+						if(orderNum[i].value==''){
+							layer.msg("请填写图片排序数值");
+							return;
+						}
+						allOrderNum = allOrderNum + orderNum[i].value + ",";
+					}
+				}
+				
+				var param = {
+					"id":id,
+					"prizeName":prizeName,
+					"prizePrice":prizePrice,
+					"lotteryPoint":lotteryPoint,
+					"lotteryCount":lotteryCount,
+					"hotNumber":hotNumber,
+					"beginTime":datemin,
+					"endTime":datemax,
+					"lotteryTime":lotteryTime,
+					"prizeImagePath":prizeImagePath,
+					"statusEnum":type,
+					"imagePath":allImagePath,
+					"orderNum":allOrderNum,
+					"type":allType
+				};
+				
+				ajaxRequest.ajax(request_url + "pointLotteryActivity/savePointLotteryActivity",param,"POST",function(data){
+					var obj = eval(data);
+						if(obj.ret == '1000') {
+							layer.alert("操作成功！", {
+								closeBtn: 0
+							}, function() {
+								var index = parent.layer.getFrameIndex(window.name);
+								parent.$('#btnSubmit').click();
+								parent.layer.close(index);
+							});
+						} else {
+							layer.msg("操作失败！", {
+								icon: 5,
+								time: 1000
+							});
+						};
+				});
+			}
+			
+			function validityPrice(obj){
+				if(obj.value.length == 1 && obj.value == '.'){
+					obj.value = '0.';
+				}
+				if(obj.value.length == 2 && obj.value == '00'){
+					obj.value = '0.';
+				}
+				obj.value = obj.value.replace(/[^\d.]/g,"");  //清除“数字”和“.”以外的字符  
+			    obj.value = obj.value.replace(/\.{2,}/g,"."); //只保留第一个. 清除多余的       
+			    obj.value = obj.value.replace(".","$#$").replace(/\./g,"").replace("$#$",".");      
+			    obj.value = obj.value.replace(/^(\-)*(\d+)\.(\d\d).*$/,'$1$2.$3');//只能输入两个小数     
+			}
+			
+			function validityNumber(obj){
+				if(obj.value.length == 1){
+					obj.value = obj.value.replace(/[^1-9]/g,'');
+				}else{
+					obj.value = obj.value.replace(/\D/g,'');
+				}
+			}
+			
+			function delIntroduction(obj){
+				var id = obj.id;
+				var index = id.substring(id.indexOf("_")+1,id.length);
+				$("#introduction_"+index).remove();
+			}
+			
+			uploadIntroduction = 100;
+			function addIntroduction(){
+				var imagePath = document.getElementsByName("imagePath");  
+				if(imagePath.length>0){
+					for(var i=0;i<imagePath.length;i++){
+						if(imagePath[i].value==''){
+							layer.msg("请先上传图片");
+							return;
+						}
+					}
+				}
+				
+				var html = '<label class="form-label col-2"></label>';
+					html += '<div class="formControls col-2" id="introduction_'+uploadIntroduction+'"> ';
+					html += '<input type="text" id="orderNum_'+uploadIntroduction+'" name="orderNum" placeholder="排序" style="width: 80px;height: 22px;font-size: 16px;" onkeyup="validityNumber(this);" maxlength="5"/>';
+					html += '<input type="button" value="删除" id="introductionDel_'+uploadIntroduction+'" onclick="delIntroduction(this);" style="width: 80px;background-color:red;color: white;height: 28px;font-size: 16px;"/>';
+					html += '<span ><a id="introductionImg_'+uploadIntroduction+'" href="" data-lightbox="introductionImg"><img id="upload_img_'+uploadIntroduction+'" src="" width="160" style="display: none;"/></a></span>';
+					html += '<span class="btn-upload form-group">';
+					html += '<input type="file" id="inputfile_'+uploadIntroduction+'" name="inputfile_'+uploadIntroduction+'" />';	
+					html += '<input type="hidden" value="" id="imagePath_'+uploadIntroduction+'" name="imagePath"/>';
+					html += '</span>';	
+					html += '</div>';
+				$("#introduction").after(html);
+				
+				$("#inputfile_"+uploadIntroduction).change(function(){
+			        var formData = new FormData();
+			        var fileObj = document.getElementById("inputfile_"+uploadIntroduction).files[0];
+			        formData.append('file', fileObj);
+			        
+			        $(this).wrap("<form id='ajaxupload"+uploadIntroduction+"' action='' method='post' enctype='multipart/form-data'></form>");
+					$("#ajaxupload"+uploadIntroduction).ajaxSubmit({
+						url: request_url+"/upload/uploadFile?uploadType=IMG",
+						type: "POST",
+						success: function(data) {
+							$("#imagePath_"+uploadIntroduction).val(data.model.fileUrl);
+							$("#introductionImg_"+uploadIntroduction).attr("href",request_url_image + data.model.fileUrl);
+							$("#upload_img_"+uploadIntroduction).attr("src",request_url_image + data.model.fileUrl);
+							$("#upload_img_"+uploadIntroduction).show();
+							$("#inputfile_"+uploadIntroduction).hide();
+							uploadIntroduction++;
+						}
+					});
+		        });
+			}
+			
+			function delLotteryInfo(obj){
+				var id = obj.id;
+				var index = id.substring(id.indexOf("_")+1,id.length);
+				$("#lotteryInfo_"+index).remove();
+			}
+			
+			uploadLotteryInfo = 500;
+			function addLotteryInfo(){
+				var lotteryImagePath = document.getElementsByName("lotteryImagePath");  
+				if(lotteryImagePath.length>0){
+					for(var i=0;i<lotteryImagePath.length;i++){
+						if(lotteryImagePath[i].value==''){
+							layer.msg("请先上传图片");
+							return;
+						}
+					}
+				}
+				
+				var html = '<label class="form-label col-2"></label>';
+					html += '<div class="formControls col-2" id="lotteryInfo_'+uploadLotteryInfo+'"> ';
+					html += '<input type="text" id="orderNum_'+uploadLotteryInfo+'" name="orderNum" placeholder="排序" style="width: 80px;height: 22px;font-size: 16px;" onkeyup="validityNumber(this);" maxlength="5"/>';
+					html += '<input type="button" value="删除" id="lotteryInfoDel_'+uploadLotteryInfo+'" onclick="delLotteryInfo(this);" style="width: 80px;background-color:red;color: white;height: 28px;font-size: 16px;"/>';
+					html += '<span ><a id="lotteryInfoImg_'+uploadLotteryInfo+'" href="" data-lightbox="lotteryInfoImg"><img id="upload_img_'+uploadLotteryInfo+'" src="" width="160" style="display: none;"/></a></span>';
+					html += '<span class="btn-upload form-group">';
+					html += '<input type="file" id="inputfile_'+uploadLotteryInfo+'" name="inputfile_'+uploadLotteryInfo+'" />';	
+					html += '<input type="hidden" value="" id="lotteryImagePath_'+uploadLotteryInfo+'" name="lotteryImagePath"/>';
+					html += '</span>';	
+					html += '</div>';
+				$("#lotteryInfo").after(html);
+				
+				$("#inputfile_"+uploadLotteryInfo).change(function(){
+			        var formData = new FormData();
+			        var fileObj = document.getElementById("inputfile_"+uploadLotteryInfo).files[0];
+			        formData.append('file', fileObj);
+			        
+			        $(this).wrap("<form id='ajaxupload"+uploadLotteryInfo+"' action='' method='post' enctype='multipart/form-data'></form>");
+					$("#ajaxupload"+uploadLotteryInfo).ajaxSubmit({
+						url: request_url+"/upload/uploadFile?uploadType=IMG",
+						type: "POST",
+						success: function(data) {
+							$("#lotteryImagePath_"+uploadLotteryInfo).val(data.model.fileUrl);
+							$("#lotteryInfoImg_"+uploadLotteryInfo).attr("href",request_url_image + data.model.fileUrl);
+							$("#upload_img_"+uploadLotteryInfo).attr("src",request_url_image + data.model.fileUrl);
+							$("#upload_img_"+uploadLotteryInfo).show();
+							$("#inputfile_"+uploadLotteryInfo).hide();
+							uploadLotteryInfo++;
+						}
+					});
+		        });
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<form action="" method="post" class="form form-horizontal" id="dataForm">
+				
+				<div id="type-data">
+				</div>
+		    </form>
+		</div>
+	</body>
+
+</html>

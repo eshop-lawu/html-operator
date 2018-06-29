@@ -1,0 +1,168 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>转盘游戏</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				$('#contentTable').bootstrapTable({
+					url: request_url + "gameDial/page",
+					ajaxOptions: {async:true,timeout:10000},
+					 onLoadSuccess: function(data){  //加载成功时执行
+					 		if(data.total >0){
+					 			$(".add_btn").hide();
+					 		}
+				            console.info("加载成功");
+				      }
+				});
+				initContentLoad();
+			}
+			
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				var html = "";
+				html += "<a href='javascript:;' name='game_lottery_record' class='permission_hide' onclick='listRecord(\"" + row.id + "\")'>抽奖记录</a>&nbsp&nbsp"
+				+"<a href='javascript:;' name='game_lottery_record_list' class='permission_hide' onclick='listPrize(\"" + row.id + "\")'>奖品列表</a>&nbsp&nbsp"
+				+"<a href='javascript:;' name='game_dail_update' class='permission_hide' onclick='update(\"" + row.id + "\")'>修改</a>&nbsp&nbsp";
+				if(row.status == 'ENABLED'){
+					html += "<a href='javascript:;'   onclick='updateGameDail(\"" + row.id + "\",\"DISABLED\")'>禁用</a>&nbsp;&nbsp;";
+				}
+				if(row.status == 'DISABLED'){
+					html +="<a href='javascript:;'   onclick='updateGameDail(\"" + row.id + "\",\"ENABLED\")'>启用</a>";
+				}
+				
+				return html;
+			}
+			
+			function statusEnum(value, row, index) {
+				if(row.status == 'ENABLED'){
+					return "启用";
+				}
+				if(row.status == 'DISABLED'){
+					return "禁用";
+				}
+				
+			}
+			
+			function add(title, url, w, h) {
+				layer_show(title, url, w, h);
+			}
+			
+			function update(id) {
+				layer_show("修改游戏配置", "game-dail-manager.html?id="+id, '', 510);
+			}
+			
+			function listRecord(id,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "抽奖记录",
+					content: "game-dail-record-list.html?id=" + id
+				});
+				layer.full(index);
+			}
+			
+			function listPrize(id,activityStatus,w,h){
+				var index = layer.open({
+					type: 2,
+					title: "奖品详情",
+					content: "game-dail-prize-list.html?gameDialId=" + id
+				});
+				layer.full(index);
+			}
+			
+			function imgPath(value, row, index) {
+				return '<img class="radius" src="' + request_url_image + row.imgPath + '" onerror="this.src=\'' + rootPath + '/images/user.png\';" style="height:80px;">';
+			}
+			
+			function updateGameDail(id,status){
+				
+				var tipsTxt,url;
+				if(status=='DISABLED'){
+					tipsTxt = '禁用' ;
+					url =request_url + "gameDial/setDisableGameDial/" + id
+				}else{
+					tipsTxt = '启用' ;
+					url =request_url + "gameDial/setAbleGameDial/" + id
+				}
+				
+				layer.confirm('是否确认' + tipsTxt + '？', {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						ajaxRequest.ajax(url,"","PUT",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert(tipsTxt + '成功！', {
+										closeBtn: 0
+									}, function() {
+										location.replace(location.href);
+									});
+								} else {
+									layer.msg(tipsTxt + '失败！', {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					},
+					function() {
+						//取消
+					});
+			}
+			
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 游戏管理 <span class="c-gray en">&gt;</span> 转盘游戏管理
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+			</div>
+			<div class="mt-20">
+				<div class="cl pd-5 bg-1 bk-gray mt-20"> 
+					<span class="l">
+					<a href="javascript:;" name="game_dail_add" onclick="add('新增游戏','game-dail-manager.html?id=0','','510')" class="btn add_btn btn-primary radius">新增转盘游戏</a>
+					</span>
+				</div>
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-field="id" data-visible="false">id</th>
+							<th data-width="10%" data-formatter="imgPath" data-visible="true">游戏图片</th>
+							<th data-width="15%" data-field="name" data-visible="true">游戏名称</th>
+							<th data-width="5%" data-field="point" data-visible="true">参与积分</th>
+							<th data-width="5%" data-field="freeCount" data-visible="true">免费次数</th>
+							<th data-width="5%" data-field="shareAttendCount" data-visible="true">分享可免费次数</th>
+							<th data-width="5%" data-formatter="statusEnum" >状态</th>
+							<th data-width="15%" data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

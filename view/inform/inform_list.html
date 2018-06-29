@@ -1,0 +1,207 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+<script src="../../js/loadExtendFile.js"></script>
+<title></title>
+<script type="text/javascript">
+	recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER,  fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON, fileGroupConstants.DISTRICT,fileGroupConstants.STYLE_PER
+			]);
+	window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+				
+				$('#contentTable').bootstrapTable({
+					url: request_url + "inform/selectInformList",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+			}
+	/**删除**/
+	function deleteRow(ids) {
+		var tips_success = "删除成功！";
+		var tips_fail = "删除失败";
+		var confitmTips = "是否确认删除？";
+		
+		var jsonData={"permissionIds":ids}
+			layer.confirm(confitmTips, {
+					btn: ['确认', '取消'] //按钮
+				}, function() {
+					//确认
+					$.ajax({
+						url:request_url+"permission/delPermission/",
+						type: "POST",
+						data:jsonData,
+						success: function(data) {
+							var obj = eval(data);
+
+							if(obj.ret == '1000') {
+								layer.alert(tips_success, {
+									closeBtn: 0
+								}, function() {
+									location.replace(location.href);
+								});
+							}else if(obj.ret == '2102'){
+								layer.msg(obj.msg, {
+									icon: 5,
+									time: 1000
+								});
+							}  else {
+								layer.msg(tips_fail, {
+									icon: 5,
+									time: 1000
+								});
+							};
+						},
+						error: function(data) {
+							layer.msg(tips_fail, {
+								icon: 5,
+								time: 1000
+							});
+						}
+					});
+				},
+				function() {
+					//取消
+				});
+		}
+		
+		//冻结账户
+		function freeAccount(merchantId,userNum,merchantAccount,informId,informType){
+			layer_show("冻结账户", "freezeReason.html?id="+merchantId+"&userNum="+userNum+"&account="+merchantAccount+"&informId="+informId);
+		}
+		//不予处理
+		function passTheGoods(id,itemId,informType){
+			layer_show("不予处理", "inform_text.html?id=" + id+"&status=2&itemId="+itemId+"&informType="+informType, "", "510");
+		}
+		//下架
+		function offTheGoods(id,itemId,informType){
+			layer_show("下架", "inform_text.html?id=" + id+"&status=1&itemId="+itemId+"&informType="+informType, "", "510");
+		}
+		
+		function detail(id,itemId,informType){
+			if(informType==1 ||informType==2){//平面广告
+				var str="广告详情";
+				if(informType==2){
+					str="E赞详情";
+				}
+				var index = layer.open({
+					type: 2,
+					title: str,
+					content: "down-ad-detail.html?id=" + itemId
+				});
+				layer.full(index);				
+			}else if(informType==3){//商家
+				var index = layer.open({
+					type: 2,
+					title: "商家详情",
+					content: "down-store-detail.html?id=" + itemId
+				});
+				layer.full(index);	
+			}else if(informType==4){//商品
+				var index = layer.open({
+					type: 2,
+					title: "商品详情",
+					content: "down-product-detail.html?id=" + itemId
+				});
+				layer.full(index);	
+			}else if(informType==5){
+				var index = layer.open({
+					type: 2,
+					title: "视频详情",
+					content: "down-ad-detail.html?id=" + itemId
+				});
+				layer.full(index);	
+			}
+		}
+		
+		/**获取选中行ID**/
+		function getIdSelections() {
+			return $.map($('#contentTable').bootstrapTable('getSelections'), function(row) {
+				return row.id
+			});
+		};
+	
+
+	/**查询获取表单条件**/
+	function queryParams(params) {
+		$.each($('#searchForm').serializeArray(), function(i, item) {
+			params[item.name] = item.value;
+		})
+		return params;
+	}
+	/*表格操作*/
+	function fun(value, row, index) {
+		var str="";
+		if(row.status == 0){
+			if(row.informType == 3){
+				str="<a href='javascript:;' name='inform_edit' class='permission_hide' onclick='freeAccount(\"" + row.informtItemId + "\",\"" + row.userNum + "\",\"" + row.merchantAccount + "\",\"" + row.id + "\")'>冻结账户</a>&nbsp;&nbsp;";
+			}else{
+				str="<a href='javascript:;' name='inform_edit' class='permission_hide' onclick='offTheGoods(\"" + row.id + "\",\"" + row.informtItemId + "\",\"" + row.informType + "\")'>下架</a>&nbsp;&nbsp;";
+			}
+			str+="|&nbsp;&nbsp;<a href='javascript:;' name='inform_edit' class='permission_hide' onclick='passTheGoods(\"" + row.id + "\",\"" + row.informtItemId + "\",\"" + row.informType + "\")'>不予处理</a>&nbsp;&nbsp;"
+			str+="|&nbsp;&nbsp;<a href='javascript:;' name='inform_detail' class='permission_hide' onclick='detail(\"" + row.id + "\",\"" + row.informtItemId + "\",\"" + row.informType + "\")'>详情</a>"
+		}else{
+			str="<a href='javascript:;' name='inform_detail' class='permission_hide' onclick='detail(\"" + row.id + "\",\"" + row.informtItemId + "\",\"" + row.informType + "\")'>详情</a>";
+		}
+		return str;
+	}
+</script>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 举报管理 <span class="c-gray en">&gt;</span> 举报管理 
+	<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+</nav>
+<div class="pd-20">
+	<div class="text-c">
+		<form id="searchForm">
+			举报内容:<input type="text" style="width:250px" placeholder="举报内容" name="content">
+			被举报类型名称:<input type="text" style="width:250px" placeholder="被举报类型名称" name="informtItemName">
+			类型：<select name="informType">
+				<option value="">全部</option>
+				<option value="INFORM_TYPE_PLAT">平面广告</option>					
+				<option value="INFORM_TYPE_PRAISE">E咻</option>
+				<option value="INFORM_TYPE_MERCHANT">商家</option>
+				<option value="INFORM_TYPE_GOODS">商品</option>
+				<option value="INFORM_TYPE_VIDEO">视频</option>
+			</select>
+			状态：
+			<select name="status">
+				<option value="">全部</option>
+				<option value="INFORM_PENDING">待处理</option>
+				<option value="INFORM_ALREADY_PROCESSED">已处理</option>
+				<option value="INFORM_NOT_HANDLED">不处理</option>
+			</select>
+		</form>
+		<button class="btn btn-success radius" id="btnSubmit"><i class="Hui-iconfont">&#xe665;</i> 查询</button>
+	</div>
+	
+	<div class="mt-20">
+		<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-url="" data-side-pagination="server" data-method="GET" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+			<thead>
+				<tr>
+					<th data-field="id" data-visible="false">ID</th>
+					<th data-width="8%" data-field="informerAccount">举报人账号</th>
+					<th data-width="5%" data-field="informTypeStr" >举报类型</th>
+					<th data-width="15%" data-field="informtItemName">被举报名称</th>
+					<th data-width="22%" data-field="content" >举报内容</th>
+					<th data-width="10%" data-field="gmtCreate" >举报时间</th>
+					<th data-width="5%" data-field="statusStr" >状态</th>
+					<th data-width="8%" data-field="auditorName" >处理人</th>
+					<th data-width="15%" data-field="remark" >处理备注</th>
+					<th data-width="12%" data-formatter="fun" >操作</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>商品品牌</title>
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			
+			window.onload = function() {
+				var id = getUrlVars()["id"];
+				if(id != "" && id != undefined) {
+					$("#searchForm input[name='productCategoryId']").val(id);
+				}
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+
+				$('#contentTable').bootstrapTable({
+					url: request_url + "productSpec/getOperatorProductSpecList",
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			/*表格操作*/
+			function fun(value, row, index) {
+				var html = "";
+				
+				html += "<a style='text-decoration:none;font-size:15px;' name='' class='ml-5 ' href='javascript:;' title = '编辑' onclick='editProductSpec(\"" + row.id + "\")'>编辑</a>";
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class=''  onclick='addProductSpecOption(\"" + row.id + "\",\""+ row.specName +"\")'>添加规格项</a>";
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class='ml-5 ' href='javascript:;' title = '规格列表' onclick='specOptionList(\"" + row.id + "\")'>规格项列表</a>";
+				html += "&nbsp;&nbsp;&nbsp;<a style='text-decoration:none;font-size:15px;' name='' class=''  onclick='deleteRow(\"" + row.id + "\",\"1\")'>删除</a>";
+				return html;
+			}
+			
+			
+	
+			/**删除**/
+			function deleteRow(ids, type) {
+				var delurl = request_url +"productSpec/delProductSpec?ids="+ids;
+				var tips_success = "删除成功！";
+				var tips_fail = "删除失败";
+				var confitmTips = "是否确认删除？";			
+				/*var jsonData = ;*/
+				layer.confirm(confitmTips, {
+						btn: ['确认', '取消'] //按钮
+					}, function() {
+						//确认
+						ajaxRequest.ajax(delurl,"","PUT",function(data){
+							var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.alert(tips_success, {
+										closeBtn: 0
+									}, function() {
+										location.replace(location.href);
+									});
+								} else {
+									layer.msg(tips_fail, {
+										icon: 5,
+										time: 1000
+									});
+								};
+						});
+					},
+					function() {
+						//取消
+					});
+			}
+		
+		function addProductSpecOption(id,name){
+			layer_show("添加规格项", "addProductSpecOption.html?id=" + id+"&name="+encodeURI(name), "", "470");
+		}
+		
+		
+		function specOptionList(id){
+			var index = layer.open({
+				type: 2,
+				title: "规格项列表",
+				content: "productSpecOption.html?id=" + id
+			});
+			layer.full(index);
+		}
+		function editProductSpec(id){
+			layer_show("编辑", "editProductSpec.html?id=" + id, "", "470");
+		}
+		
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 商品管理 <span class="c-gray en">&gt;</span> 商品规格管理
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<form id="searchForm" class="text-c">
+					<input type="text" style="width:250px" placeholder="商品规格名称" name="specName">
+					<input type="hidden"  placeholder="商品分类ID" name="productCategoryId">
+				</form>
+			<div class="text-c">
+				<button class="btn btn-success radius" id="btnSubmit"><i class="Hui-iconfont">&#xe665;</i>查询</button>
+			</div>
+			
+			<div class="mt-20">
+				<table style="word-break:break-all; word-wrap:break-all;" id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="get" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-field="id" data-visible="false">id</th>
+							<th  data-field="categoryName" data-visible="true">所属分类</th>
+							<th  data-field="productCategoryId" data-visible="false">所属分类</th>
+							<th  data-field="specName" data-visible="true">规格名称</th>
+							<th  data-field="ordinal" data-visible="true">排序</th>
+							<th  data-field="gmtCreate" data-visible="true">创建时间</th>
+							<th  data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+
+</html>

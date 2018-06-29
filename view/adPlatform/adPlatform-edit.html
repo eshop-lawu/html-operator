@@ -1,0 +1,561 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<link href="../../lib/layer/1.9.3/skin/layer.css" rel="stylesheet" />
+		<title>编辑广告</title>
+	</head>
+
+<body>
+<div class="pd-20 " id="main">
+	<form action=""  method="post" class="form form-horizontal" id="dataForm">
+		
+		<div class="row cl">
+			<label class="form-label col-3"><span class="c-red">*</span>标题：</label>
+			<div class="formControls col-5">
+				<input id="title" type="text" class="input-text" value="" placeholder="" id="ad-name" name="title" datatype="*2-16" nullmsg="标题不能为空">
+			</div>
+			<label id="titleError" style="color: red;"></label>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-3"><span class="c-red">*</span>类型：</label>
+			<div class="formControls col-5 skin-minimal type">
+				<div class="radio-box type_link">
+					<input type="radio" id="sex-1" name="typeEnum" value="TYPE_LINK">
+					<label for="sex-1">链接</label>
+				</div>
+				<div class="radio-box">
+					<input type="radio" id="sex-2" name="typeEnum" value="TYPE_PRODUCT">
+					<label for="sex-2">商品</label>
+				</div>
+				<div class="radio-box">
+					<input type="radio" id="sex-3" name="typeEnum" value="TYPE_STORE">
+					<label for="sex-3">门店</label>
+				</div>
+				<div class="radio-box">
+					<input type="radio" id="sex-4" name="typeEnum" value="TYPE_AD">
+					<label for="sex-4">广告</label>
+				</div>
+				<div class="radio-box">
+					<input type="radio" id="sex-5" name="typeEnum" value="TYPE_GAME">
+					<label for="sex-5">游戏</label>
+				</div>
+			</div>
+			<label id="typeError" style="color: red;"></label>
+			<div class="col-4"> </div>
+		</div>
+		
+		<div class="row cl linkPosition" style="display: none;">
+			<label class="form-label col-3"><span class='c-red'>*</span>位置：</label>
+			<div class="formControls col-5">
+				<span class="select-box">
+				<select id="position_link" class="select position_link" size="1" name="positionEnum1" datatype="*" nullmsg="请选择广告位置！">
+				  <option value="">请选择广告位置</option>
+				  <option value="POSITON_RECOMMEND">人气推荐</option>
+				  <option value="POSITON_SHOP_TOP">趣乐购顶部广告</option>
+				  <option value="SHOPPING_INTEGRAL_INDIANA">积分抽奖</option>
+				  <option value="POSITON_SHOP_CHOOSE">趣乐购今日推荐</option>
+				  <option value="POSITON_SHOP_GOODS">趣乐购精品</option>
+				  <option value="POSITON_AD_TOP">看广告顶部广告</option>
+				  <option value="SHOPPING_BUY">E店必购</option>
+				  <option value="SHOPPING_GOODS">特色好货</option>
+				  <option value="SHOPPING_BENEFIT">实惠单品</option>
+				  <option value="SHOPPING_HOT">热门商品</option>
+				  <option value="AD_POSITION_TWO">广告模块三个视频</option>
+				  <option value="AD_POSITION_THREE">广告模块一个平面</option>
+				  <option value="AD_POSITION_FOUR">广告模块五个平面</option>
+				</select>
+				</span>
+			</div>
+			<label id="positionError" style="color: red;"></label>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl productPosition" style="display: none;">
+			<label class="form-label col-3"><span class="c-red">*</span>位置：</label>
+			<div class="formControls col-5">
+				<span class="select-box">
+				<select id="product_position" class="select product_position" size="1" name="positionEnum2" datatype="*" nullmsg="请选择广告位置！">
+				  <option value="">请选择广告位置</option>
+				  <option value="POSITON_SHOP_TOP">趣乐购顶部广告</option>
+				  <option value="POSITON_SHOP_CHOOSE">趣乐购今日推荐</option>
+				  <option value="SHOPPING_HOT">热门商品</option>
+				  <option value="SHOPPING_INTEGRAL_INDIANA">积分抽奖</option>
+				  <option value="ACTIVITY_PRODUCT">抢购活动</option>
+				</select>
+				</span>
+			</div>
+			<label id="positionError" style="color: red;"></label>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl storePosition" style="display: none;">
+			<label class="form-label col-3"><span class="c-red">*</span>位置：</label>
+			<div class="formControls col-5">
+				<span class="select-box">
+				<select id="position_store" class="select position_store" size="1" name="positionEnum3" datatype="*" nullmsg="请选择广告位置！">
+				  <option value="">请选择广告位置</option>
+				  <option value="POSITON_RECOMMEND">为你推荐</option>
+				</select>
+				</span>
+			</div>
+			<label id="positionError" style="color: red;"></label>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl adPosition" style="display: none;">
+			<label class="form-label col-3"><span class="c-red">*</span>位置：</label>
+			<div class="formControls col-5">
+				<span class="select-box">
+				<select id="position_ad" class="select position_ad" size="1" name="positionEnum4" datatype="*" nullmsg="请选择广告位置！">
+				  <option value="">请选择广告位置</option>
+				  <option value="POSITON_AD_TOP">看广告顶部广告</option>
+				  <option value="AD_POSITION_TWO">广告模块三个视频</option>
+				  <option value="AD_POSITION_THREE">广告模块一个平面</option>
+				  <option value="AD_POSITION_FOUR">广告模块五个平面</option>
+				</select>
+				</span>
+			</div>
+			<label id="positionError" style="color: red;"></label>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl gamePosition" style="display: none;">
+			<label class="form-label col-3"><span class="c-red">*</span>位置：</label>
+			<div class="formControls col-5">
+				<span class="select-box">
+				<select id="position_game" class="select position_game" size="1" name="positionEnum5" datatype="*" nullmsg="请选择广告位置！">
+				  <option value="" selected>请选择广告位置</option>
+				  <option value="GAME_TOP">游戏顶部广告</option>
+				</select>
+				</span>
+			</div>
+			<label id="positionError4" style="color: red;"></label>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl chooseRetion" style="display: none;">
+			<label class="form-label col-3 "><span class='c-red'>*</span>选择：</label>
+			<div class="formControls col-5"> 
+				<span >
+				<span class="btn-upload form-group">
+				
+					<label id="choose" class="btn btn-primary radius"  onClick="chooseStore();">&nbsp;&nbsp;选择&nbsp;&nbsp;</label>
+				
+				</span>
+				<input id="merchantStoreId" name="merchantStoreId"  type="hidden"/>
+				<input id="productId" name="productId"  type="hidden"/>
+				<input id="adId" name="adId"  type="hidden"/>
+				关联名称：<span id="relationName"></span>
+			</div>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl linkUrl" id="type-date">
+			<label class='form-label col-3'><span class='c-red'>*</span>链接：</label>
+			<div class='formControls col-5'><input class='input-text' datatype='*2-16' id='linkUrl' name='linkUrl' value=""/>
+			</div>
+		</div>
+		<div class="row cl city-picker" id="type-date" style="display: none;">
+			<label class='form-label col-3'><span class='c-red'>*</span>区域：</label>
+			<div id="distpicker" style=" border:0px solid #c7c7c9; width:80%; font-size:14px; ">
+				<div class="form-group">
+					<div style="position: relative;">
+						<input  id="city-picker3"  class="form-control" readonly type="text" value="//" data-toggle="city-picker" >
+					</div>
+				</div>
+			</div>
+			<input type="hidden" value="" name="regionPath" id="regionPath"/>
+			<input type="hidden" value="" name="regionName" id="regionName"/>
+		</div>
+		
+		
+		<div class="row cl">
+			<label class="form-label col-3"><span class='c-red'>*</span>广告位图片：</label>
+			
+			<div class="formControls col-3">
+					<label class="btn btn-primary radius" id="upload-label" for="upload" >&nbsp;&nbsp;上传&nbsp;&nbsp;</label>
+					<input type="file" id="upload" class="input-text" style="display: none;"/>
+					<input type="hidden" name="mediaUrl" id="mediaUrl"/>
+					<span ><img width="70px" height="70px" id="upload_img" src=""/></span>
+			</div>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-3">描述：</label>
+			<div class="formControls col-5">
+				<textarea id="content" name="content" cols="" rows="" class="textarea" placeholder="说点什么..." datatype="*10-100" dragonfly="true" nullmsg="备注不能为空！" onKeyUp="textarealength(this,100)"></textarea>
+				<p class="textarea-numberbar"><em class="textarea-length">0</em>/100</p>
+			</div>
+			<div class="col-4"> </div>
+		</div>
+		<div class="row cl">
+			<div class="col-9 col-offset-3">
+				<input type="hidden" name="id" value="0">
+				<input id="btnSubmitAd" class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+			</div>
+		</div>
+	</form>
+</div>
+</div>
+
+<script type="text/javascript">
+	recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER,
+				fileGroupConstants.COMMON, fileGroupConstants.DISTRICT, fileGroupConstants.VALIDATE,
+				fileGroupConstants.TEMPLATE, fileGroupConstants.JQUERY_CHECK,fileGroupConstants.FILEUPLOAD,
+			]);
+			
+	var type,pos;
+	window.onload = function() {
+	
+		/**获取html页面之间跳转的参数**/
+		function getUrlVars() {
+			var vars = [],
+				hash;
+			var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+			for(var i = 0; i < hashes.length; i++) {
+				hash = hashes[i].split('=');
+				vars.push(hash[0]);
+				vars[hash[0]] = hash[1];
+			}
+			return vars;
+		}
+		var id = getUrlVars()["id"];
+		var relateName = decodeURI(getUrlVars()["relateName"]);
+		if(relateName != null && relateName != undefined){
+			$("#relationName").html(relateName);
+		}else{
+			$("#relationName").html();
+		}
+		
+		ajaxRequest.ajax(request_url +"/adPlatform/select/"+id,"","GET",function(data){
+			var obj = eval(data);
+					if(obj.ret == '1000') {
+						
+						//document.getElementById('main').innerHTML= template('ad_edit', obj.model);
+						$("#title").val(obj.model.title);
+						$("#content").text(obj.model.content);
+						$("#mediaUrl").val(obj.model.mediaUrl);
+						$("#linkUrl").val(obj.model.linkUrl);
+						if(obj.model.mediaUrl !=""){
+							$("#upload_img").attr("src",request_url_image+obj.model.mediaUrl);
+						}
+						
+						pos = obj.model.positionEnum;
+						
+						var regionPath=obj.model.regionPath;
+						$("input[name='regionPath']").val(regionPath);
+						if( obj.model.regionName!=""){
+							$(".placeholder").html(obj.model.regionName);
+						}
+						if(obj.model.positionEnum == 'SHOPPING_INTEGRAL_INDIANA' || obj.model.positionEnum  == 'ACTIVITY_PRODUCT'){
+								$(".chooseRetion").hide();
+						}
+						$("#position_link option").each(function() {
+								
+								if($(this).val()==obj.model.positionEnum){
+									$(this).attr("selected","true");
+								}
+							});
+						$("input[name='typeEnum']").each(function() {
+							if($(this).val()==obj.model.typeEnum){
+								$(this).parent().addClass('checked');
+								$(this).attr("checked","checked");
+							}
+						});
+						if(obj.model.typeEnum=='TYPE_STORE'){
+							$(".storePosition").show();
+							$(".city-picker").show();
+							$(".position_store").attr("name","positionEnum");
+							$(".position_store option").each(function() {
+								if($(this).val()==obj.model.positionEnum){
+									$(this).attr("selected","true");
+								}
+							});
+						}
+						
+						if(obj.model.typeEnum=='TYPE_LINK'){
+							 $(".linkPosition").show();
+							 $(".position_link").attr("name","positionEnum");
+							$("#linkUrl").val(obj.model.linkUrl);
+							$(".position_link option").each(function() {
+								if($(this).val()==obj.model.positionEnum){
+									$(this).attr("selected","true");
+								}
+							});
+						}else{
+							 $(".linkUrl").hide();
+							 if(obj.model.positionEnum != 'SHOPPING_INTEGRAL_INDIANA' && obj.model.positionEnum != 'ACTIVITY_PRODUCT'){
+							 	$(".chooseRetion").show();
+							 }
+							 if(obj.model.typeEnum=='TYPE_AD'){
+							 	  $(".adPosition").show();
+							 	  $(".position_ad").attr("name","positionEnum");
+							 	  
+									$(".position_ad option").each(function() {
+										if($(this).val()==obj.model.positionEnum){
+											$(this).attr("selected","true");
+										}
+									});
+							 }
+							 if(obj.model.typeEnum=='TYPE_PRODUCT'){
+							 	$(".productPosition").show()
+							 	$(".product_position").attr("name","positionEnum");
+								$(".product_position option").each(function() {
+									if($(this).val()==obj.model.positionEnum){
+										$(this).attr("selected","true");
+									}
+								});
+							 }
+							 if(obj.model.typeEnum=='TYPE_GAME'){
+							 	$(".gamePosition").show()
+							 	$(".chooseRetion").hide();
+							 	$(".linkUrl").show();
+							 	$(".position_game").attr("name","positionEnum");
+								$(".position_game option").each(function() {
+									if($(this).val()==obj.model.positionEnum){
+										$(this).attr("selected","true");
+									}
+								});
+							 }
+							
+						}
+					} else {
+						layer.msg('加载失败！', {
+							icon: 5, 
+							time: 1000
+						});
+					};
+				type = $("input[type='radio']:checked").val();
+		});
+		
+		
+		$("input[name='typeEnum']").change(function() {
+			$("#relationName").html("");
+			type = $("input[type='radio']:checked").val();
+			if(type == 'TYPE_LINK') {
+				$(".linkUrl").show();
+				$(".city-picker").hide();
+				$(".chooseRetion").hide();
+				$(".linkPosition").show();
+				$(".productPosition").hide();
+				$(".storePosition").hide();
+				$(".adPosition").hide();
+				$(".linkPosition select").attr("disabled",false);
+				$(".productPosition select").attr("disabled",true);
+				$(".storePosition select").attr("disabled",true);
+				$(".adPosition select").attr("disabled",true);
+				$("#merchantStoreId").val("");
+				$("#adId").val("");
+				$("#productId").val("");
+				
+				$(".position_link").parents().find("select").each(function(i) {
+					$(this).attr("name","other"+i);
+				});
+				$(".position_link").attr("name","positionEnum");
+				
+			} else if(type == 'TYPE_PRODUCT') {
+				$(".linkUrl").hide();
+				$(".city-picker").hide();
+				$(".linkPosition").hide();
+				$(".productPosition").show();
+				$(".storePosition").hide();
+				$(".adPosition").hide();
+				$(".gamePosition").hide();
+				$("#merchantStoreId").val("");
+				$("#adId").val("");
+				$(".storePosition select").attr("disabled",true);
+				$(".adPosition select").attr("disabled",true);
+				$(".linkPosition select").attr("disabled",true);
+				$(".productPosition select").attr("disabled",false);
+				$(".gamePosition select").attr("disabled",true);
+				if(pos == 'SHOPPING_INTEGRAL_INDIANA'){
+					$(".chooseRetion").hide();
+				}
+				
+				$(".product_position").parents().find("select").each(function(i) {
+					$(this).attr("name","other"+i);
+				});
+				$(".product_position").attr("name","positionEnum");
+			} else if(type == 'TYPE_STORE'){
+				$(".city-picker").show();
+				$(".linkUrl").hide();
+				$(".chooseRetion").show();
+				$(".linkPosition").hide();
+				$(".productPosition").hide();
+				$(".storePosition").show();
+				$(".adPosition").hide();
+				$(".gamePosition").hide();
+				$("#productId").val("");
+				$("#adId").val("");
+				$(".linkPosition select").attr("disabled",true);
+				$(".productPosition select").attr("disabled",true);
+				$(".storePosition select").attr("disabled",false);
+				$(".adPosition select").attr("disabled",true);
+				$(".gamePosition select").attr("disabled",true);
+				
+				$(".position_store").parents().find("select").each(function(i) {
+					$(this).attr("name","other"+i);
+				});
+				$(".position_store").attr("name","positionEnum");
+			}else if(type == 'TYPE_GAME'){
+				$(".city-picker").hide();
+				$(".linkUrl").show();
+				$(".chooseRetion").hide();
+				$(".linkPosition").hide();
+				$(".productPosition").hide();
+				$(".storePosition").hide();
+				$(".adPosition").hide();
+				$(".gamePosition").show();
+				$("#productId").val("");
+				$("#adId").val("");
+				$(".linkPosition select").attr("disabled",true);
+				$(".productPosition select").attr("disabled",true);
+				$(".storePosition select").attr("disabled",true);
+				$(".adPosition select").attr("disabled",true);
+				$(".gamePosition select").attr("disabled",false);
+				
+				$(".position_game").parents().find("select").each(function(i) {
+					$(this).attr("name","other"+i);
+				});
+				$(".position_game").attr("name","positionEnum");
+			}else{
+				$(".linkUrl").hide();
+				$(".city-picker").hide();
+				$(".chooseRetion").show();
+				$(".linkPosition").hide();
+				$(".productPosition").hide();
+				$(".storePosition").hide();
+				$(".adPosition").show();
+				$(".gamePosition").hide();
+				$("#productId").val("");
+				$("#merchantStoreId").val("");
+				$(".linkPosition select").attr("disabled",true);
+				$(".productPosition select").attr("disabled",true);
+				$(".storePosition select").attr("disabled",true);
+				$(".adPosition select").attr("disabled",false);
+				$(".gamePosition select").attr("disabled",true);
+				
+				$(".position_ad").parents().find("select").each(function(i) {
+					$(this).attr("name","other"+i);
+				});
+				$(".position_ad").attr("name","positionEnum");
+			}
+
+		});
+		
+	   $(".product_position").change(function(){
+			if($(this).val() == 'SHOPPING_INTEGRAL_INDIANA' || $(this).val() == 'ACTIVITY_PRODUCT'){
+				$(".chooseRetion").hide();
+			}else{
+				$(".chooseRetion").show();
+			}
+		})
+
+		$("#upload").change(function(){
+			$.ajaxfileUploadExtend({
+				uploadType: upload_Type_enum.IMG,
+				elementSelector: "#upload",
+				success:function(data){
+					$("#mediaUrl").val(data.model.fileUrl);
+					$("#upload_img").attr("src",request_url_image+data.model.fileUrl);
+					$("#upload_img").show();
+				}
+			});
+		});
+        
+        
+        $("#btnSubmitAd").click(function(){
+			
+			
+			if(type == 'TYPE_STORE'){
+				
+				var provinceId = $("span[data-count='province']").attr("data-code");
+				var cityId = $("span[data-count='city']").attr("data-code");
+				var areaId = $("span[data-count='district']").attr("data-code");
+				var regionPath = "" , regionName="";
+				if(provinceId != "" && provinceId != undefined) {
+					regionPath = provinceId;
+				}
+				if(cityId != "" && cityId != undefined) {
+					regionPath = regionPath + "/" + cityId;
+				}
+				if(areaId != "" && areaId != undefined) {
+					regionPath = regionPath + "/" + areaId;
+				}
+				//$("#regionPath").val(regionPath);
+				$("input[name='regionPath']").val(regionPath);
+				var provinceName = $("span[data-count='province']").html();
+				
+				var cityName = $("span[data-count='city']").html();
+				var areaName = $("span[data-count='district']").html();
+				
+			   if(provinceName != "" && provinceName != undefined) {
+					regionName = provinceName;
+				}
+				if(cityName != "" && cityName != undefined) {
+					regionName = regionName + "/" + cityName;
+				}
+				if(areaName != "" && areaName != undefined) {
+					regionName = regionName + "/" + areaName;
+				}
+				console.log(regionName);
+				$("input[name='regionName']").val(regionName);
+			}
+			
+			$("#dataForm").attr("action", request_url + "adPlatform/update/" + id);
+			$("#dataForm").validate({
+				ignore: ":hidden",
+				rules: {
+					title: {
+						required: true
+					},
+					positionEnum: {
+						required: true
+					}
+				},
+				messages: {
+					title: {
+						required: "请输入标题"
+					},
+					positionEnum: {
+						required: "请选择位置"
+					}
+				},
+				submitHandler: function(form) {
+					ajaxRequest.ajaxSub(form,function(data) {
+						var obj = eval(data);
+							if(obj.ret == '1000') {
+								var index = parent.layer.getFrameIndex(window.name);
+								parent.$('#btnSubmit').click();
+								parent.layer.close(index);
+								
+							} else {
+								alert(obj.msg);
+							}
+					});
+				}
+			});
+		
+			
+		});
+		
+		
+	}
+	function chooseStore(){
+		if(type == 'TYPE_PRODUCT'){
+			layer_show("选择", "chooseProduct-list.html" , "", "700");
+		}else if(type == 'TYPE_STORE'){
+			layer_show("选择", "chooseStore-list.html" , "", "700");
+		}else if(type == 'TYPE_AD'){
+			layer_show("选择", "chooseAd-list.html" , "", "700");
+		}
+			
+	}	
+	
+</script>
+</body>
+
+</html>

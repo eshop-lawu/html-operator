@@ -1,0 +1,262 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<LINK rel="Bookmark" href="/favicon.ico">
+		<LINK rel="Shortcut Icon" href="/favicon.ico" />
+		<title>抢购活动管理</title>
+		<script type="text/javascript" src="../../js/loadExtendFile.js"></script>
+		<script type="text/javascript">
+			// 加载资源文件
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.TEMPLATE, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+			]);
+			
+			/* 会员等级枚举 */
+			var member_level_enum = {
+				"SILVER": { key: "SILVER", label: "白银会员" },
+				"GOLD": { key: "GOLD", label: "黄金会员" },
+				"PLATINUM": { key: "PLATINUM", label: "铂金会员" },
+				"MASONRY": { key: "MASONRY", label: "钻石会员" },
+				"CROWN": { key: "CROWN", label: "皇冠会员" },
+			};
+			
+			var activity_status_enum = {
+				"UNPUBLISHED": { key: "UNPUBLISHED", label: "未发布" },
+				"PUBLISHED": { key: "PUBLISHED", label: "发布中" },
+				"IN_REVIEW": { key: "IN_REVIEW", label: "审核中" },
+				"NOT_STARTED": { key: "NOT_STARTED", label: "未开始" },
+				"PROCESSING": { key: "PROCESSING", label: "进行中" },
+				"END": { key: "END", label: "已结束" },
+			};
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+
+				// 加载列表数据
+				$('#contentTable').bootstrapTable({
+					url: request_url_seckill_activity_page,
+			    	showRefresh: true,
+					ajaxOptions: {async:true,timeout:10000},
+				});
+				initContentLoad();
+				
+				var obj = {};
+				obj['member_level_enum'] = member_level_enum;
+				obj['activity_status_enum'] = activity_status_enum;
+				var html = template('template', obj);
+				$("#searchForm").html(html);
+				
+				$("#start-date-left").on("focus", function() {
+					WdatePicker({ dateFmt: "yyyy-MM-dd", maxDate: '#F{$dp.$D(\'start-date-right\')}', readOnly:'true'});
+				});
+				$("#start-date-right").on("focus", function() {
+					WdatePicker({ dateFmt: "yyyy-MM-dd", minDate: '#F{$dp.$D(\'start-date-left\')}', readOnly:'true'});
+				});
+			};
+
+			/*抢购活动-修改*/
+			function seckill_activity_edit(id) {
+				var url = "/view/seckill-activity/seckill-activity-edit.html";
+				if (id != undefined) {
+					url += "?id=" + id;
+				}
+				layer_extend_show({
+					title: "抢购活动-修改",
+					url: url,
+				});
+			}
+
+			/*抢购活动-删除*/
+			function seckill_activity_delete(id) {
+				layer.confirm('是否确认删除？', {
+					btn: ['确认', '取消'] //按钮
+				}, function() {
+					if(!isNull(id)) {
+						$.ajaxExtend({
+							url: request_url_seckill_activity.replace("{id}", id),
+							type: "DELETE",
+							success: function(obj) {
+								layer.msg("删除成功", {
+									icon: 1,
+									time: 1000
+								}, refresh());
+							},
+						});
+					}
+				});
+			}
+			
+			/*抢购活动-发布*/
+			function seckill_activity_release(id) {
+				layer.confirm('是否确认发布？', {
+					btn: ['确认', '取消'] //按钮
+				}, function() {
+					if(!isNull(id)) {
+						$.ajaxExtend({
+							url: request_url_seckill_activity_release.replace("{id}", id),
+							type: "PUT",
+							success: function(obj) {
+								layer.msg("发布成功", {
+									icon: 1,
+									time: 1000
+								}, refresh());
+							},
+						});
+					}
+				});
+			}
+			
+			/*抢购活动-下架*/
+			function seckill_activity_down(id) {
+				layer.confirm('是否确认下架？', {
+					btn: ['确认', '取消'] //按钮
+				}, function() {
+					if(!isNull(id)) {
+						$.ajaxExtend({
+							url: request_url_seckill_activity_down.replace("{id}", id),
+							type: "PUT",
+							success: function(obj) {
+								layer.msg("下架成功", {
+									icon: 1,
+									time: 1000
+								}, refresh());
+							},
+						});
+					}
+				});
+			}
+			
+			/*抢购活动-审核*/
+			function seckill_activity_audit(id) {
+				layer.confirm('是否确认审核？', {
+					btn: ['确认', '取消'] //按钮
+				}, function() {
+					if(!isNull(id)) {
+						$.ajaxExtend({
+							url: request_url_seckill_activity_audit.replace("{id}", id),
+							type: "PUT",
+							success: function(obj) {
+								layer.msg("审核成功", {
+									icon: 1,
+									time: 1000
+								}, refresh());
+							},
+						});
+					}
+				});
+			}
+			
+			/*抢购活动-查看抢购活动商品*/
+			function seckill_activity_product_page_search(id,name,startDate) {
+				location.href = encodeURI("seckill-activity-product-list.html?id=" + id+"&name="+name+"&startDate="+startDate);
+			}
+
+			/**获取选中行ID**/
+			function getIdSelections() {
+				return $.map($('#contentTable').bootstrapTable('getSelections'), function(row) {
+					return row.id
+				});
+			};
+
+			/*表格操作*/
+			function fun(value, row, index) {
+				var optionHtml = '<a class="ml-5 permission_hide" name="seckill_activity_product_page_search" style="text-decoration:none" title="查看抢购活动商品列表" href=\'javascript:;\' onclick="seckill_activity_product_page_search(\'' + row.id + '\',\'' + row.name + '\',\'' + row.startDate + '\')"><i class="Hui-iconfont">&#xe681;</i></a>';
+				// 只有未发布的抢购活动才能进行编辑、删除、发布操作
+				if (row.activityStatus == activity_status_enum.UNPUBLISHED.key) {
+					optionHtml += '<a class="ml-5 permission_hide" name="seckill_activity_update" style="text-decoration:none" title="编辑" href=\'javascript:;\' onclick="seckill_activity_edit(\'' + row.id + '\')"><i class="Hui-iconfont">&#xe6df;</i></a>';
+					optionHtml += '<a class="ml-5 permission_hide" name="seckill_activity_delete" style="text-decoration:none" title="删除" href=\'javascript:;\' onclick="seckill_activity_delete(\'' + row.id + '\')"><i class="Hui-iconfont">&#xe609;</i></a>';
+					optionHtml += '<a class="ml-5 permission_hide" name="seckill_activity_release" style="text-decoration:none" title="发布" href=\'javascript:;\' onclick="seckill_activity_release(\'' + row.id + '\')"><i class="Hui-iconfont">&#xe603;</i></a>';
+				} else if (row.activityStatus == activity_status_enum.IN_REVIEW.key) {
+					optionHtml += '<a class="ml-5 permission_hide" name="seckill_activity_audit" style="text-decoration:none" title="审核" href=\'javascript:;\' onclick="seckill_activity_audit(\'' + row.id + '\')"><i class="Hui-iconfont">&#xe6e1;</i></a>';
+				}
+				
+				if (row.activityStatus != activity_status_enum.END.key) {
+					optionHtml += '<a class="ml-5 permission_hide" name="seckill_activity_down" style="text-decoration:none" title="下架" href=\'javascript:;\' onclick="seckill_activity_down(\'' + row.id + '\')"><i class="Hui-iconfont">&#xe6de;</i></a>';
+				}
+				return optionHtml;
+			}
+
+			/*处理会员等级枚举*/
+			function get_member_level_str(data) {
+				return member_level_enum[data].label;
+			}
+			
+			/*处理活动状态枚举*/
+			function get_activity_status_str(data) {
+				return activity_status_enum[data].label;
+			}
+			
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					params[item.name] = item.value;
+				})
+				return params;
+			}
+			
+			function refresh() {
+				$('#contentTable').bootstrapTable('refresh');
+			}
+		</script>
+		<script id="template" type="text/html">
+			<select name="memberLevel" class="select" style="width: 250px;">
+				<option value="">请选择会员等级</option>
+				{{each member_level_enum as member_level}}
+					<option value="{{member_level.key}}">{{member_level.label}}</option>
+				{{/each}}
+			</select>
+			<select name="activityStatus" class="select" style="width: 250px;">
+				<option value="">请选择活动状态</option>
+				{{each activity_status_enum as member_level}}
+					<option value="{{member_level.key}}">{{member_level.label}}</option>
+				{{/each}}
+			</select>
+			时间范围：
+			<input type="text" placeholder="输入开始时间起始" id="start-date-left" name="startDateLeft" class="Wdate" style="width: 250px;" readonly="true">
+			<input type="text" placeholder="输入开始时间结尾" id="start-date-right" name="startDateRight" class="Wdate" style="width: 250px;" readonly="true">
+		</script>
+	</head>
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 审核管理 <span class="c-gray en">&gt;</span> 抢购活动审核
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+				</form>
+				<button type="button" class="btn btn-success" id="btnSubmit"><i class="Hui-iconfont">&#xe665;</i>搜索</button>
+			</div>
+			<div class="cl pd-5 bg-1 bk-gray mt-20"> 
+				<span class="l">
+					<a href="javascript:;" name="seckill_activity_add" onclick="seckill_activity_edit()" class="btn btn-primary radius permission_hide"><i class="Hui-iconfont">&#xe610;</i> 添加抢购活动</a>
+				</span> 
+			</div>
+			<div class="mt-20">
+				<table id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="get" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-formatter="getImage" data-field="picture" data-visible="true">活动宣传图片</th>
+							<th data-field="name" data-visible="true">活动名称</th>
+							<th data-field="sellingPrice" data-visible="true">活动定价</th>
+							<th data-field="attentEndDate" data-visible="true">报名结束时间</th>
+							<th data-field="startDate" data-visible="true">开始时间</th>
+							<th data-field="endDate" data-visible="true">结束时间</th>
+							<th data-field="memberLevel" data-formatter="get_member_level_str" data-visible="true">会员等级</th>
+							<th data-field="activityStatus" data-formatter="get_activity_status_str" data-visible="true">活动状态</th>
+							<th data-formatter="fun">操作</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+	</body>
+</html>

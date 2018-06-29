@@ -1,0 +1,132 @@
+﻿<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script src="../../js/loadExtendFile.js"></script>
+		<title>助力红包报名管理</title>
+
+		<script type="text/javascript">
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON, fileGroupConstants.STYLE_PER
+			]);
+			
+			/* 异常状态枚举 */
+			var abnormal_status_enum = {
+				"NORMAL": { key: "NORMAL", label: "正常" },
+				"SUSPECTED": { key: "SUSPECTED", label: "疑似" },
+				"ABNORMAL": { key: "ABNORMAL", label: "异常" },
+				"WHITE_LIST": { key: "WHITE_LIST", label: "白名单" },
+			};
+			
+			window.onload = function() {
+				$("#btnSubmit").click(function() {
+					$('#contentTable').bootstrapTable('refreshOptions', { currentPage: 1 });
+					$('#contentTable').bootstrapTable('removeAll');
+					$('#contentTable').bootstrapTable('refresh');
+				});
+
+				$('#contentTable').bootstrapTable({
+					url: request_url + "helpRedpacketAttendDetail/helpRedpacketAttendPageOperator",
+					ajaxOptions: { async: true, timeout: 10000 },
+				});
+				initContentLoad();
+				
+				$("#redpacket-activity-select").click(function(){
+					layer_extend_show({
+						title: "抢购活动选择器",
+						url: "/view/helpRedpacket/redpacket-activity-select.html",
+						full: false,
+						width: 400,
+						height: 400
+					});
+				});
+			}
+
+			/**查询获取表单条件**/
+			function queryParams(params) {
+				$.each($('#searchForm').serializeArray(), function(i, item) {
+					if(item.value != '') {
+						params[item.name] = item.value;
+					}
+
+				})
+				return params;
+			}
+			
+			/*处理活动状态枚举*/
+			function get_abnormal_status_str(data) {
+				return abnormal_status_enum[data].label;
+			}
+			
+			function imageUrl(value, row, index) {
+				return "<img width='70px' height='60px' src='" + request_url_image + row.headimg + "' />";
+			}
+		</script>
+	</head>
+
+	<body>
+		<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 活动管理<span class="c-gray en">&gt;</span> 助力红包报名管理
+			<a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px"
+			 href="javascript:location.replace(location.href);" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+		</nav>
+		<div class="pd-20">
+			<div class="text-c">
+				<form id="searchForm">
+					<div class="row cl">
+						<input type="text" style="width:250px" placeholder="请选择助力红包活动" id="redpacket-activity-select" readonly="true">
+						<input type="hidden" id="redpacket-activity-selected" name="activityId">
+						<input type="text" style="width:250px" placeholder="用户账号" name="account">
+						<select name="statusEnum">
+							<option value>请选择</option>
+							<option value="ATTEND">已报名</option>
+							<option value="ALLOT">已分配</option>
+							<option value="GET">已领取</option>
+							<option value="SEND">已发放</option>
+							<option value="SEND_SUCCESS">发放成功</option>
+							<option value="SEND_FAIL">发放失败</option>
+						</select>
+						<select name="isLucky">
+							<option value>请选择</option>
+							<option value="true">大额</option>
+							<option value="false">非大额</option>
+						</select>
+						<select name="abnormalStatus">
+							<option value="">请选择异常状态</option>
+							<option value="NORMAL" selected="true">正常</option>
+							<option value="SUSPECTED">疑似</option>
+							<option value="ABNORMAL">异常</option>
+							<option value="WHITE_LIST">白名单</option>
+						</select>
+					</div>
+				</form>
+				<button class="btn btn-success radius" id="btnSubmit" name=""><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+			</div>
+			<div class="mt-20">
+				<table id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type=""
+				 data-query-params="queryParams" data-click-to-select="true">
+					<thead>
+						<tr>
+							<th data-field="account" data-visible="true">用户账号</th>
+							<th data-field="nickname" data-visible="true">用户昵称</th>
+							<th data-formatter="imageUrl">用户图像</th>
+							<th data-field="helpCount" data-visible="true">有效助力人数</th>
+							<th data-field="abnormalStatus" data-formatter="get_abnormal_status_str">异常状态</th>
+							<th data-field="originalMoney" data-visible="true">原始红包金额</th>
+							<th data-field="finalMoney" data-visible="true">最终红包金额</th>
+							<th data-field="statusName" data-visible="true">报名状态 </th>
+							<th data-field="sendRemark" data-visible="true">红包发放备注 </th>
+							<th data-field="allotTime" data-visible="true">红包分配时间 </th>
+							<th data-field="takeTime" data-visible="true">红包领取时间 </th>
+							<th data-field="gmtCreate" data-visible="true">报名时间 </th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+
+	</body>
+
+</html>

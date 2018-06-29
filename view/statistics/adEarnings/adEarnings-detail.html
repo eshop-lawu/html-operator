@@ -1,0 +1,80 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+<script src="../../../js/loadExtendFile.js"></script>
+<title>广告收益详情管理</title>
+<script type="text/javascript">
+	recursiveloadExtendFile(extendFiles, [
+			fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER
+		]);
+	
+	window.onload = function() {
+		
+		 var id = getUrlVars()["adId"];
+		
+		 var adTypeEnum = getUrlVars()["adTypeEnum"];
+		 
+		 $("#adId").val(id);
+		 $("#adTypeEnum").val(adTypeEnum);
+		
+		$("#btnSubmit").click(function() {
+			$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+			$('#contentTable').bootstrapTable('removeAll');
+			$('#contentTable').bootstrapTable('refresh');
+		});
+		
+		$('#contentTable').bootstrapTable({
+			url:request_url +"reportAdEarnings/getReportAdEarningsDetail",
+			 ajaxOptions: {async:true,timeout:10000},
+		});
+		initContentLoad();
+	}
+	
+	function queryParams(params) {
+		
+		$.each($('#searchForm').serializeArray(), function(i, item) {
+				params[item.name] = item.value;
+		})
+		return params;
+	}
+	
+	
+	/**获取选中行ID**/
+	function getIdSelections() {
+		return $.map($('#contentTable').bootstrapTable('getSelections'), function(row) {
+			return row.id
+		});
+	};
+		
+</script>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 广告管理 <span class="c-gray en">&gt;</span> 广告收益详情管理 <a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="pd-20">
+			<form id="searchForm">
+					<input id="adId"  type="hidden"  name="adId">
+					<input id="adTypeEnum" type="hidden"  name="adTypeEnum">
+				</form>
+	<div class="mt-20">
+	<table id="contentTable" data-toggle="table" data-flat="true"  data-side-pagination="server" data-method="get" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+		<thead>
+			<tr>
+				<th data-field="id" data-visible="true">id</th>
+				<th data-field="title" data-visible="true">广告名</th>
+				<th data-field="merchantName" data-visible="true">商家名</th>
+				<th data-field="account" data-visible="true">用户账号</th>
+				<th data-field="getPointTime" data-visible="true">获取日期</th>
+				<th data-field="point" data-visible="true">获取金额</th>
+			</tr>
+		</thead>
+	</table>
+	</div>
+</div>
+
+</body>
+</html>

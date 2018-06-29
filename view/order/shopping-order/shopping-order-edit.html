@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="renderer" content="webkit|ie-comp|ie-stand">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<script type="text/javascript" src="../../../js/loadExtendFile.js"></script>
+		<script type="text/javascript">
+			// 加载资源文件
+			recursiveloadExtendFile(extendFiles, [
+				fileGroupConstants.JQUERY, fileGroupConstants, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.VALIDATE, fileGroupConstants.TEMPLATE, fileGroupConstants.COMMON
+			]);
+
+			window.onload = function() {
+				/**获取html页面之间跳转的参数**/
+				var params = getUrlVars();
+				var id = params["id"];
+				if(!isNull(id)) {
+					$.ajaxExtend({
+						url: request_url_shopping_order_get + id,
+						type: "GET",
+						success: function(obj) {
+							// 获取快递公司
+							$.get(request_url_express_company_list, function(data){
+								var express_company_list = eval(data);
+								obj['express_company_list'] = express_company_list.model;
+								var html = template('shopping_order', obj);
+								$("#dataForm").html(html);
+							})
+						},
+					});
+				}
+
+				$("#dataForm").validate({
+					rules: {
+						consigneeName: {
+							required: true
+						},
+						consigneeAddress: {
+							required: true
+						},
+						consigneeMobile: {
+							required: true
+						},
+						expressCompanyId: {
+							required: true,
+							min:1
+						},
+						waybillNum: {
+							required: true
+						}
+					},
+					messages: {
+						consigneeName: {
+							required: "请输入收货人姓名"
+						},
+						consigneeAddress: {
+							required: "请输入收货人地址"
+						},
+						consigneeMobile: {
+							required: "请输入收货人电话号码"
+						},
+						expressCompanyId: {
+							required: "请选择物流",
+							min: "请选择物流",
+						},
+						waybillNum: {
+							required: "请输入运单编号"
+						}
+					},
+					submitHandler: function(form) {
+						$(form).ajaxSubmit({
+							url: request_url_shopping_order_updateInformation + id,
+							type: "POST",
+							success: function(data) {
+								var obj = eval(data);
+								if(obj.ret == '1000') {
+									layer.confirm('更新成功！', {
+										btn: ['确认']
+									}, function() {
+										parent.$("#btnSubmit").click();
+										layer_extend_close();
+									});
+								} else {
+									layer.msg('更新失败！', {
+										icon: 5,
+										time: 1000
+									});
+								}
+							}
+						});
+					}
+				});
+			}
+		</script>
+		<script id="shopping_order" type="text/html">
+			<input type="hidden" class="input-text" value="{{model.id}}" placeholder="" id="shopping-order-id" name="id" />
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>收货人姓名：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{model.consigneeName}}" placeholder="" id="shopping-order-consigneeName" name="consigneeName" />
+				</div>
+				<label class="form-label col-1"><span class="c-red">*</span>收货人地址：</label>
+				<div class="formControls col-3">
+					<input type="text" class="input-text" value="{{model.consigneeAddress}}" placeholder="" id="shopping-order-consigneeAddress" name="consigneeAddress" />
+				</div>
+				<div class="formControls col-2"></div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>收货人手机号码：</label>
+				<div class="formControls col-5">
+					<input type="text" class="input-text" value="{{model.consigneeMobile}}" placeholder="" id="shopping-order-member-consigneeMobile" name="consigneeMobile" />
+				</div>
+				<div class="formControls col-4"></div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>物流公司：</label>
+				<div class="formControls col-5"> <span class="select-box">
+					<select name="expressCompanyId" class="select">
+						<option value="0">请选择物流</option>
+						{{each express_company_list as express_company}}
+							<option value="{{express_company.id}}" {{if (model.expressCompanyId == express_company.id)}}selected="true"{{/if}}>{{express_company.code}}-{{express_company.name}}</option>
+						{{/each}}
+					</select>
+					</span>
+				</div>
+				<div class="formControls col-4"></div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>运单编号：</label>
+				<div class="formControls col-5">
+					<input type="text" class="input-text" value="{{model.waybillNum}}" placeholder="" id="shopping-order-member-waybillNum" name="waybillNum" />
+				</div>
+				<div class="formControls col-4"></div>
+			</div>
+			<div class="row cl">
+				<label class="form-label col-3"><span class="c-red">*</span>订单状态：</label>
+				<div class="formControls col-5"> <span class="select-box">
+					<select name="orderStatus" class="select">
+						<option value="PENDING" {{if (model.orderStatus == "PENDING")}}selected="true"{{/if}}>待处理</option>
+						<option value="PENDING_PAYMENT" {{if (model.orderStatus == "PENDING_PAYMENT")}}selected="true"{{/if}}>待付款</option>
+						<option value="BE_SHIPPED" {{if (model.orderStatus == "BE_SHIPPED")}}selected="true"{{/if}}>待发货</option>
+						<option value="TO_BE_RECEIVED" {{if (model.orderStatus == "TO_BE_RECEIVED")}}selected="true"{{/if}}>待收货</option>
+						<option value="CANCEL_TRANSACTION" {{if (model.orderStatus == "CANCEL_TRANSACTION")}}selected="true"{{/if}}>交易关闭</option>
+						<option value="REFUNDING" {{if (model.orderStatus == "REFUNDING")}}selected="true"{{/if}}>退款中</option>
+					</select>
+					</span>
+				</div>
+				<div class="formControls col-4"></div>
+			</div>
+			<div class="row cl">
+				<div class="col-9 col-offset-3">
+					<input type="hidden" name="id" value="0">
+					<input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+				</div>
+			</div>
+		</script>
+		<title>添加</title>
+	</head>
+
+	<body>
+		<div class="pd-20">
+			<form class="form form-horizontal" id="dataForm">
+
+			</form>
+		</div>
+		</div>
+	</body>
+
+</html>

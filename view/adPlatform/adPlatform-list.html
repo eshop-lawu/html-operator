@@ -1,0 +1,253 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,member-scalable=no" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+<script src="../../js/loadExtendFile.js"></script>
+<title>广告位管理</title>
+<script type="text/javascript">
+	recursiveloadExtendFile(extendFiles, [
+			fileGroupConstants.JQUERY, fileGroupConstants.H_UI, fileGroupConstants.LAYER, fileGroupConstants.WDATEPICKER, fileGroupConstants.BOOTSTRAP, fileGroupConstants.COMMON,fileGroupConstants.STYLE_PER,fileGroupConstants.EDITABLE,
+		]);
+	window.onload = function() {
+		$("#btnSubmit").click(function() {
+			$('#contentTable').bootstrapTable('refreshOptions',{currentPage:1});
+			$('#contentTable').bootstrapTable('removeAll');
+			$('#contentTable').bootstrapTable('refresh');
+		});
+		
+		$('#contentTable').bootstrapTable({
+			url: request_url + "adPlatform/selectList",
+			showRefresh: true,
+			ajaxOptions: {async:true,timeout:10000},
+            onLoadSuccess: function (aa, bb, cc) {
+                $(".priority.editable").editable({
+			    	type: 'text',
+			    	name: "priority",
+			    	title: '排序优先级',
+			        url: function (params) {
+			        	let data = {"priority": params.value};
+						$.ajaxExtend({
+							url: request_url + "adPlatform/updatePriority/" + params.pk,
+							type: "PUT",
+							data: data,
+							success: function(obj) {
+								layer.msg("操作成功", {
+									icon: 1,
+									time: 1000
+								});
+							},
+						});
+			        },
+			      	validate: function(value) {
+			           	if(!/^\d+$/.test(value)) return '请输入一个正整数';
+			        }
+			    });
+            },
+		});
+		initContentLoad();
+		
+		
+	}
+	/**删除**/
+	function deleteRow(ids,position) {
+		var url = request_url + "/adPlatform/removeAdPlatform/" + ids +"?positionEnum="+position;
+		layer.confirm('是否确认删除？', {
+				btn: ['确认', '取消'] //按钮
+		}, function() {
+				//确认
+				ajaxRequest.ajax(url,"","PUT",function(data){
+					var obj = eval(data);
+					if(data.ret == 1000){
+						layer.alert('删除成功！', {
+							closeBtn: 0
+						}, function() {
+							location.replace(location.href);
+						});
+					}else{
+						layer.msg(obj.msg)
+					}
+						
+				});
+			},
+			function() {
+				//取消
+			});
+	}
+	
+	//广告下架
+	function unShelveRow(id,type,position){
+		var tipsTxt = '下架';
+		var url = request_url + "/adPlatform/unShelve/"+id+"?positionEnum="+position
+		if(type == 'up'){
+			tipsTxt = '上架';
+			url = request_url + "/adPlatform/onShelve/"+id
+		}
+		layer.confirm('是否确认' + tipsTxt + '？', {
+				btn: ['确认', '取消'] //按钮
+			}, function() {
+				//确认
+				ajaxRequest.ajax(url,"","PUT",function(data){
+					var obj = eval(data);
+						if(obj.ret == '1000') {
+							layer.alert(tipsTxt + '成功！', {
+								closeBtn: 0
+							}, function() {
+								location.replace(location.href);
+							});
+						} else {
+							layer.msg(obj.msg)
+						};
+				});
+			},
+			function() {
+				//取消
+			});
+		
+	}
+	
+	
+	/*添加*/
+	function adPlatform_add(title, url, w, h) {
+		//layer_show(title, url, w, h);
+		var index = layer.open({
+					type: 2,
+					title: title,
+					content: url
+				});
+				layer.full(index);
+		
+	}
+	
+	/**修改**/
+	function editRow(id,relateName) {
+		//layer_show("修改", "adPlatform-edit.html?id=" + id, "", "510");
+		var index = layer.open({
+			type: 2,
+			title: "广告编辑",
+			content: "adPlatform-edit.html?id=" + id+"&relateName="+relateName
+		});
+		layer.full(index);
+	}
+	/**批量删除**/
+	function datadel() {
+		var selectedIds = getIdSelections();
+		if(selectedIds.length != 0) {
+			deleteRow(selectedIds);
+		} else {
+			layer.msg('请选中一行！', {
+				icon: 5,
+				time: 1000
+			});
+		}
+	}
+	/**获取选中行ID**/
+	function getIdSelections() {
+		return $.map($('#contentTable').bootstrapTable('getSelections'), function(row) {
+			return row.id
+		});
+	};
+	/**查询获取表单条件**/
+	function queryParams(params) {
+		$.each($('#searchForm').serializeArray(), function(i, item) {
+			params[item.name] = item.value;
+		})
+		return params;
+	}
+	/*表格操作*/
+	function fun(value, row, index) {
+		var html = "<a href='javascript:;' name='adPlatForm_soldOut' class='permission_hide' onclick='unShelveRow(\"" + row.id + "\",\"down\",\"" + row.positionEnum + "\")'>下架</a>";
+		if(row.statusEnum == 'DOWN'){
+			html = "<a href='javascript:;' name='index_store_putAway' class='permission_hide' onclick='unShelveRow(\"" + row.id + "\",\"up\")'>上架</a>";
+		}
+		return "<a href='javascript:;' name='adPlatForm_edit' class='permission_hide' onclick='editRow(\"" + row.id + "\",\""+row.relateName+"\")'>编辑</a>&nbsp;|&nbsp;<a href='javascript:;' class='permission_hide' name='adPlatForm_del'  onclick='deleteRow(\"" + row.id + "\",\"" + row.positionEnum + "\")'>删除</a>&nbsp;|&nbsp;" + html;
+	}
+	
+	function imageUrl(value, row, index){
+		return "<img width='100px' height='60px' src='"+request_url_image +row.mediaUrl+"' />";
+	}
+	
+	function editable_style(value, row, index) {
+		if(row.positionEnum == 'POSITON_SHOP_CHOOSE'){
+			return "<a href=\"#\" data-pk=\"" + row.id + "\" class=\"priority editable\">" + value + "</a>";
+		}else{
+			return '--';
+		}
+		
+	}
+	
+
+</script>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 广告中心 <span class="c-gray en">&gt;</span> 广告位管理 <a class="btn btn-success radius r mr-20" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="pd-20">
+	<div class="text-c">
+		<form id="searchForm">
+			<div class="row cl">
+				<input type="text" style="width:250px" placeholder="广告标题" name="title">
+				<select name="typeEnum">
+						<option value="TYPE_ALL">广告位类型</option>
+						<option value="TYPE_PRODUCT">商品</option>
+						<option value="TYPE_STORE">门店</option>
+						<option value="TYPE_AD">广告</option>
+						<option value="TYPE_LINK">链接</option> 
+						<option value="TYPE_GAME">游戏</option>
+				</select>
+				<select name="positionEnum">
+						<option value="TYPE_ALL">广告位置</option>
+						<option value="POSITON_RECOMMEND">人气推荐</option>
+					    <option value="POSITON_SHOP_TOP">趣乐购顶部广告</option>
+					    <option value="POSITON_SHOP_CHOOSE">趣乐购今日推荐</option>
+					    <option value="POSITON_SHOP_GOODS">趣乐购精品</option>
+					    <option value="POSITON_AD_TOP">看广告顶部广告</option>
+					    <option value="SHOPPING_BUY">E店必购</option>
+					    <option value="SHOPPING_GOODS">特色好货</option>
+					    <option value="SHOPPING_BENEFIT">实惠单品</option>
+					    <option value="SHOPPING_HOT">热门商品</option>
+					    <option value="AD_POSITION_TWO">广告模块三个视频</option>
+					    <option value="AD_POSITION_THREE">广告模块一个平面</option>
+					    <option value="AD_POSITION_FOUR">广告模块五个平面</option>
+					    <option value="GAME_TOP">游戏顶部广告</option>
+				</select>
+				日期范围：
+				<input type="text" onfocus="WdatePicker({maxDate:'#F{$dp.$D(\'datemax\')||\'%y-%M-%d\'}'})" id="datemin" name="beginDate" class="input-medium Wdate" style="width:120px;"> -
+				<input type="text" onfocus="WdatePicker({minDate:'#F{$dp.$D(\'datemin\')}',maxDate:'%y-%M-%d'})" id="datemax" name="endDate" class="input-medium Wdate" style="width:120px;"> 
+			</div>				
+		</form>
+		<button class="btn btn-success radius" id="btnSubmit" name=""><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+	</div>
+	<div class="cl pd-5 bg-1 bk-gray mt-20"> 
+			<span class="l">
+				<!--<a href="javascript:;" name="adPlatForm_del"  onclick="datadel()" class="btn btn-danger radius permission_hide"><i class="Hui-iconfont">&#xe6e2;</i> 批量删除</a> -->
+				<a href="javascript:;" name="adPlatForm_add" onclick="adPlatform_add('添加广告','adPlatform-add.html','','510')" class="btn btn-primary radius permission_hide"><i class="Hui-iconfont">&#xe600;</i> 添加广告</a></span> 
+	</div>
+	<div class="mt-20">
+	<table id="contentTable" data-toggle="table" data-flat="true" data-side-pagination="server" data-method="post" data-pagination="true" data-page-size="20" data-page-list="[20, 50]" data-query-params-type="" data-query-params="queryParams" data-click-to-select="true">
+		<thead>
+			<tr>
+				<th data-checkbox="true"></th>
+				<th data-field="id" data-visible="false">id</th>
+				<th data-field="title" data-visible="true" >标题</th>
+				<th data-formatter="imageUrl">广告图片</th>
+				<th data-field="priority" data-formatter="editable_style">展示排序</th>
+				<th data-field="typeName">广告类型</th>
+				<th data-field="positionName">广告位置</th>
+				<th data-field="merchantName">负责人名称</th>
+				<th data-field="relateName">关联名称</th>
+				<th data-field="linkUrl" data-visible="true" >链接</th>
+				<th data-field="gmtCreate">添加时间</th> 
+				<th data-formatter="fun">操作</th>
+			</tr>
+		</thead>
+	</table>
+	</div>
+</div>
+<style>
+	.top {bottom: auto}			
+</style>
+</body>
+</html>
